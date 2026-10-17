@@ -103,13 +103,14 @@ def validate_schema(output: dict[str, list[dict]], site_id: str) -> SiteData:
         if unknown:
             raise SchemaError(f"table '{name}': patient_id not in patients {_few(unknown)}")
 
+    arms = None
     if "ground_truth" in output:
         arms = fake_arms(output)
         unknown = set(arms.index) - pids
         if unknown:
             raise SchemaError(f"table 'ground_truth': patient_id not in patients {_few(unknown)}")
 
-    return SiteData(site_id=site_id, tables=tables)
+    return SiteData(site_id=site_id, tables=tables, arms=arms)
 
 
 def fake_arms(output: dict) -> pd.Series | None:

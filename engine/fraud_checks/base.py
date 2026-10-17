@@ -19,10 +19,15 @@ class SiteData:
     Attributes:
         site_id: Site identifier, e.g. "S07".
         tables: Table name -> DataFrame, filtered to this site's patients.
+        arms: See below.
     """
 
     site_id: str
     tables: dict[str, pd.DataFrame]
+    arms: pd.Series | None = None
+    """Fake sites only: the attacker's own drug/placebo split (patient_id -> arm), from its optional
+    ground_truth table. Never seen by the checks; used only to measure damage. None for real sites,
+    whose arms live in the locked ground truth."""
     _cache: dict = field(default_factory=dict, repr=False, compare=False)
     """Per-site derived data (patient summaries, check statistics). Checks fill it lazily."""
 

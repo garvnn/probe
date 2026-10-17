@@ -115,6 +115,8 @@ def test_round_records_everything(scripted_run, suite) -> None:
     assert set(r.scores.per_check) == {c.name for c in CORE_CHECKS}
     assert r.attacker_kind == "scripted" and r.attacker_model == "scripted-v4"
     assert r.claimed_arms == {"drug": 20, "placebo": 20}
+    assert r.damage["fake_patients_analyzed"] > 0
+    assert r.damage["effect_with_fake"] < r.damage["effect_real"]  # the scripted fake claims a big drug effect
 
 
 def test_run_is_saved_and_labeled_not_a_result(scripted_run, suite) -> None:
