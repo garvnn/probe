@@ -126,6 +126,7 @@ def test_run_is_saved_and_labeled_not_a_result(scripted_run, suite) -> None:
     assert run["suite"]["name"] == "sentinel" and run["suite"]["version"] == 0
     assert [r["escaped"] for r in run["rounds"]] == [False] * 4
     assert all(r["code"] for r in run["rounds"])
+    assert all(r["fake_output"]["patients"] and r["input_seed"] is not None for r in run["rounds"])  # Patch trains on these
 
 
 def test_feedback_carries_scores_and_previous_code(trial, suite, real_sites) -> None:

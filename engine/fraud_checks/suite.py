@@ -85,12 +85,19 @@ def check_registry() -> dict[str, type]:
     return {cls.name: cls for cls in (*CORE_CHECKS, *RATE_CHECKS)}
 
 
-def load_suite(version: int = 0) -> CheckSuite:
-    """Load a frozen suite version (v0 = the calibrated baseline battery)."""
-    path = FROZEN_DIR / f"v{version}.json"
+def load_suite(version: int = 0, frozen_dir: Path | None = None) -> CheckSuite:
+    """Load a frozen suite version (v0 = the calibrated baseline battery, v1 = v0 + the learned check).
+
+    Checks with saved parameters (the learned check) are rebuilt from the file's `check_params`.
+    """
+    path = (frozen_dir or FROZEN_DIR) / f"v{version}.json"
     if not path.exists():
-        raise FileNotFoundError(f"{path} missing; run python -m engine.fraud_checks.calibrate")
+        how = "python -m engine.fraud_checks.calibrate" if version == 0 else "scripts/run_patch.py (only freezes if the gate accepts)"
+        raise FileNotFoundError(f"{path} missing; created by {how}")
     data = json.loads(path.read_text())
-    registry = check_registry()
-    checks = [registry[name]() for name in data["checks"]]
+    from engine.patch.fallback_check import FallbackClassifierCheck
+
+    registry = {**check_registry(), FallbackClassifierCheck.name: FallbackClassifierCheck}
+    params = data.get("check_params", {})
+    checks = [registry[name].from_params(params[name]) if name in params else registry[name]() for name in data["checks"]]
     return CheckSuite(checks=checks, threshold=data["threshold"], version=data["version"], meta=data)

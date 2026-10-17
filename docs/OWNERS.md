@@ -4,9 +4,9 @@ One owner per module. Every stub raises `NotImplementedError("owner: <name>")` s
 
 | Person | Role | Owns |
 |---|---|---|
-| **Garv** | Data | `engine/simulator/`, `engine/analysis/`, `engine/fraud_checks/` (base, suite, calibrate, `checks_core.py`), `evals/ground_truth.py`, `engine/fake_data/sites.py`, `scripts/download_nhanes.py`, `docs/schema.md`, `docs/assumptions.md` |
-| **Shreyas** | Fake data | `engine/fake_data/`, `engine/patch/gate.py`, `engine/patch/droid_task.py`, `integrations/daytona.py`, `integrations/factory.py`, `integrations/llm.py`, `scripts/precompute_demo.py` |
-| **Ajay** | Blind leak + evals | `engine/blind_leak/`, `engine/fraud_checks/checks_rates.py`, `engine/patch/fallback_check.py`, `integrations/chalk.py`, `evals/` (metrics, scenarios, export), `scripts/run_full_eval.py` |
+| **Garv** | Data | `engine/simulator/`, `engine/analysis/`, `engine/fraud_checks/` (base, suite, calibrate, `checks_core.py`), `evals/ground_truth.py`, `engine/fake_data/sites.py`, `engine/patch/` (gate, learned check, features, data, pipeline; not `droid_task.py`), `scripts/run_patch.py`, `scripts/download_nhanes.py`, `docs/schema.md`, `docs/assumptions.md` |
+| **Shreyas** | Fake data | `engine/fake_data/`, `engine/patch/droid_task.py`, `integrations/daytona.py`, `integrations/factory.py`, `integrations/llm.py`, `scripts/precompute_demo.py` |
+| **Ajay** | Blind leak + evals | `engine/blind_leak/`, `engine/fraud_checks/checks_rates.py`, `integrations/chalk.py`, `evals/` (metrics, scenarios, export), `scripts/run_full_eval.py` |
 | **Akarsh** | Frontend + pitch | `frontend/`, Guess Who, report page, demo script, Devpost |
 
 `backend/` (routes, mocks, state) is shared: whoever adds or changes an endpoint updates its Pydantic model and its fixture in `backend/mocks/`.

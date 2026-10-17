@@ -49,6 +49,10 @@ class Round:
         claimed_arms: The attacker's own drug/placebo split, if it sent one. Never scored.
         diagnostics: For each check that fired, what it measured on the fake site vs the typical
             range on real sites (aggregates only). Sent to the attacker as feedback.
+        fake_output: The validated fake site exactly as the sandbox returned it (tables as row
+            lists, plus the optional ground_truth). Saved so Patch can train on it without re-running
+            attacker code. Never sent to the attacker or the UI.
+        input_seed: The seed the attacker's generate_site() was called with this round.
     """
 
     round: int
@@ -72,6 +76,8 @@ class Round:
     n_patients: int = 0
     claimed_arms: dict | None = None
     diagnostics: list[dict] = field(default_factory=list)
+    fake_output: dict | None = field(default=None, repr=False)
+    input_seed: int | None = None
 
     @property
     def status(self) -> str:
@@ -182,7 +188,8 @@ def fake_data_loop(
             rnd = Round(code="", sandbox_id="", ok=False, scores=None, combined=None, escaped=False, damage=None, error=error, **base)
             feedback = {"round": r + 1, "result": "error", "error": error}
         else:
-            result = runner.run(code, {**context, "seed": attacker.seed * 100 + r}, timeout=timeout)
+            input_seed = attacker.seed * 100 + r
+            result = runner.run(code, {**context, "seed": input_seed}, timeout=timeout)
             sandbox = {"sandbox_id": result.sandbox_id, "sandbox_s": round(result.runtime_s, 3), "timings": result.timings}
             if not result.ok:
                 error = result.stderr.strip()[-ERROR_FEEDBACK_CHARS:] or "sandbox run failed with no output"
@@ -203,6 +210,7 @@ def fake_data_loop(
                     rnd = Round(
                         code=code, ok=True, scores=scores, combined=scores.combined, escaped=escaped, damage=_damage(trial, fake),
                         fired=fired, diagnostics=diagnostics, n_patients=len(fake.tables["patients"]),
+                        fake_output=result.output, input_seed=input_seed,
                         claimed_arms=arms.value_counts().to_dict() if arms is not None else None, **sandbox, **base,
                     )
                     feedback = {
