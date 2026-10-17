@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import warnings
+import hashlib
+import json
 from dataclasses import asdict, dataclass, field
 from typing import Literal
 
-import numpy as np
 import pandas as pd
 
 from engine.simulator import store
+from engine.simulator.mechanisms import DEFAULT_MECHANISMS, validate
 from engine.simulator.build import build_tables
 from engine.simulator.schema import SCHEMA
 
@@ -30,7 +31,8 @@ class TrialConfig:
         patients_per_site: Target enrollment per site.
         mechanisms: Leak-mechanism strengths keyed by name (see docs/assumptions.md),
             e.g. {"nausea_rr": 2.5, "titration": True, "local_glucose": True, "cold_chain": True}.
-            An empty dict means all mechanisms off (the control scenario).
+            An empty dict means all mechanisms off (the control scenario). Defaults for the
+            demo are engine.simulator.mechanisms.DEFAULT_MECHANISMS.
     """
 
     scenario: Literal["A", "B"]
@@ -60,11 +62,14 @@ class Trial:
 
 
 def trial_id_for(config: TrialConfig) -> str:
-    """Deterministic ID: `tr_<seed>_<scenario>`, plus `_off` when every mechanism is off and
-    `_<sites>x<patients>` for a non-default size. Regenerating the same config overwrites it."""
+    """Deterministic ID: `tr_<seed>_<scenario>` for the default mechanisms, `_off` when none are set,
+    `_m<hash>` for any other mechanism settings, and `_<sites>x<patients>` for a non-default size.
+    Regenerating the same config overwrites it."""
     trial_id = f"tr_{config.seed}_{config.scenario}"
     if not config.mechanisms:
         trial_id += "_off"
+    elif config.mechanisms != DEFAULT_MECHANISMS:
+        trial_id += "_m" + hashlib.sha1(json.dumps(config.mechanisms, sort_keys=True).encode()).hexdigest()[:6]
     if (config.n_sites, config.patients_per_site) != (20, 40):
         trial_id += f"_{config.n_sites}x{config.patients_per_site}"
     return trial_id
@@ -79,12 +84,12 @@ def generate_trial(config: TrialConfig) -> Trial:
         raise ValueError(f"scenario must be 'A' or 'B', got {config.scenario!r}")
     if not 1 <= config.n_sites <= 99:
         raise ValueError(f"n_sites must be 1-99, got {config.n_sites}")
-    if config.mechanisms:
-        warnings.warn("leak mechanisms are not implemented yet; generating with all mechanisms off", stacklevel=2)
+    validate(config.mechanisms)
 
     trial_id = trial_id_for(config)
-    rng = np.random.default_rng(config.seed)
-    tables, arm, hidden = build_tables(trial_id, config.scenario, config.n_sites, config.patients_per_site, rng)
+    tables, arm, hidden = build_tables(
+        trial_id, config.scenario, config.n_sites, config.patients_per_site, config.seed, config.mechanisms
+    )
     ground_truth = pd.DataFrame({"patient_id": arm.index, "arm": arm.to_numpy()})
     store.save_trial(trial_id, asdict(config), tables, ground_truth, hidden)
     return Trial(trial_id=trial_id, tables=tables, config=config)

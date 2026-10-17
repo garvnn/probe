@@ -26,7 +26,7 @@ def test_import(name: str) -> None:
 
 
 def test_stub_names_owner() -> None:
-    from engine.simulator.nhanes import load_nhanes
+    from engine.fraud_checks.checks_core import TerminalDigitCheck
 
     with pytest.raises(NotImplementedError, match="owner: Garv"):
-        load_nhanes()
+        TerminalDigitCheck().score(None, [])  # type: ignore[arg-type]

@@ -198,3 +198,133 @@ def test_mechanisms_off_coordinator_view_at_chance(trial_a) -> None:
     groups = view.groupby("patient_id")["site_id"].first().reindex(X.index)
     acc = cross_val_score(LogisticRegression(max_iter=2000), X, y, groups=groups, cv=GroupKFold(5)).mean()
     assert acc == pytest.approx(0.5, abs=0.07)
+
+
+# ---------------------------------------------------------------- NHANES base and mechanisms
+
+from engine.simulator import build, mechanisms  # noqa: E402
+from engine.simulator.nhanes import AGE_RANGE, HBA1C_RANGE, load_base  # noqa: E402
+from engine.simulator.trial import trial_id_for  # noqa: E402
+
+ALL_REMEDIES = list(REMEDIES)
+
+
+@pytest.fixture(scope="module")
+def leaky_a():
+    return generate_trial(TrialConfig(scenario="A", mechanisms=mechanisms.DEFAULT_MECHANISMS))
+
+
+@pytest.fixture(scope="module")
+def leaky_b():
+    return generate_trial(TrialConfig(scenario="B", mechanisms=mechanisms.DEFAULT_MECHANISMS))
+
+
+def test_nhanes_base() -> None:
+    base = load_base()
+    assert len(base) == 495
+    assert base["age"].between(*AGE_RANGE).all() and base["hba1c"].between(*HBA1C_RANGE).all()
+    assert base[["age", "sex", "bmi", "weight", "height", "sbp", "dbp", "hba1c"]].notna().all().all()
+
+
+def test_patients_come_from_base_ranges(trial_a) -> None:
+    p = trial_a.tables["patients"]
+    assert p["age"].between(*AGE_RANGE).all()
+    assert p["baseline_hba1c"].between(*HBA1C_RANGE).all()
+    assert p["bmi"].mean() == pytest.approx(load_base()["bmi"].mean(), abs=1.5)
+
+
+def test_trial_ids() -> None:
+    assert trial_id_for(TrialConfig("B", mechanisms=mechanisms.DEFAULT_MECHANISMS)) == "tr_2026_B"
+    assert trial_id_for(TrialConfig("B")) == "tr_2026_B_off"
+    custom = trial_id_for(TrialConfig("B", mechanisms={"nausea_rr": 4.0}))
+    assert re.fullmatch(r"tr_2026_B_m[0-9a-f]{6}", custom)
+    assert custom != trial_id_for(TrialConfig("B", mechanisms={"nausea_rr": 5.0}))
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [{"telepathy": True}, {"nausea_rr": 0.5}, {"titration": 1.5}, {"cold_chain": "yes"}, {"nausea_rr": True, "titration": -0.1}],
+)
+def test_mechanism_validation(bad: dict) -> None:
+    with pytest.raises(ValueError):
+        generate_trial(TrialConfig("A", mechanisms=bad))
+
+
+def test_true_means_default_strength() -> None:
+    s = mechanisms.strengths({"titration": True, "cold_chain": False})
+    assert s["titration"] == mechanisms.STRENGTH_IF_TRUE["titration"]
+    assert s["cold_chain"] == 0.0 and s["nausea_rr"] == 1.0 and s["local_glucose"] == 0.0
+
+
+def test_placebo_nausea_constant_matches_builder() -> None:
+    share = dict((t, f) for t, _, f in build.BACKGROUND_AES)["Nausea"] / sum(f for *_, f in build.BACKGROUND_AES)
+    assert mechanisms.PLACEBO_NAUSEA_P == pytest.approx(1 - np.exp(-build.AE_RATE * share), abs=0.002)
+
+
+def test_mechanisms_leave_base_trial_unchanged(trial_a, leaky_a) -> None:
+    off, on = trial_a.tables, leaky_a.tables
+    pdt.assert_frame_equal(off["patients"], on["patients"])
+    pdt.assert_frame_equal(off["vitals"], on["vitals"])
+    central = lambda t: t["labs"].query("source == 'central'").drop(columns="lab_id").reset_index(drop=True)  # noqa: E731
+    pdt.assert_frame_equal(central(off), central(on))
+    assert ground_truth(trial_a.trial_id).equals(ground_truth(leaky_a.trial_id))
+
+
+def test_titration_trace(leaky_a) -> None:
+    arm = ground_truth(leaky_a.trial_id)
+    steps = leaky_a.tables["dispensing"].query("event_type == 'titration_step'")
+    assert set(steps["patient_id"].map(arm)) == {"drug"}
+    escalated = steps["patient_id"].nunique() / (arm == "drug").sum()
+    assert escalated == pytest.approx(mechanisms.STRENGTH_IF_TRUE["titration"], abs=0.08)
+    sham = export_view(leaky_a.trial_id, "coordinator", ["sham_titration"]).query("kind == 'titration_step'")
+    assert set(sham["patient_id"].map(arm)) == {"drug", "placebo"}
+
+
+def test_cold_chain_trace(leaky_a) -> None:
+    arm = ground_truth(leaky_a.trial_id)
+    kits = leaky_a.tables["kit_storage"]
+    ambient = kits[kits["storage"] == "ambient"]
+    assert set(ambient["patient_id"].map(arm)) == {"placebo"}
+    site_of = leaky_a.tables["patients"].set_index("patient_id")["site_id"]
+    assert ambient["patient_id"].map(site_of).nunique() == round(20 * mechanisms.STRENGTH_IF_TRUE["cold_chain"])
+    assert ambient["temp_c"].mean() > 15 > kits.loc[kits["storage"] == "refrigerated", "temp_c"].mean()
+
+
+def test_nausea_trace() -> None:
+    tr = generate_trial(TrialConfig("A", mechanisms={"nausea_rr": 5.0}))
+    arm = ground_truth(tr.trial_id)
+    nausea = tr.tables["adverse_events"].query("term == 'Nausea'").drop_duplicates("patient_id")["patient_id"].map(arm).value_counts()
+    assert nausea["drug"] > 2 * nausea["placebo"]
+
+
+def _fingerstick_change(trial) -> pd.Series:
+    view = export_view(trial.trial_id, "coordinator").query("kind == 'glucose_fingerstick'").sort_values("date")
+    fs = view.groupby("patient_id")["value"]
+    change = fs.apply(lambda v: v.iloc[-3:].mean() - v.iloc[:2].mean())
+    return change.groupby(ground_truth(trial.trial_id)).mean()
+
+
+def test_local_glucose_leaks_only_when_drug_works(leaky_a, leaky_b) -> None:
+    a, b = _fingerstick_change(leaky_a), _fingerstick_change(leaky_b)
+    assert a["drug"] - a["placebo"] < -8  # ~0.5 HbA1c points x 28.7 mg/dL
+    assert abs(b["drug"] - b["placebo"]) < 5
+
+
+def _coordinator_accuracy(trial_id: str, remedies: list[str]) -> float:
+    from sklearn.ensemble import HistGradientBoostingClassifier
+    from sklearn.model_selection import GroupKFold, cross_val_score
+
+    view = export_view(trial_id, "coordinator", remedies)
+    view = view.assign(feature=view["source"] + ":" + view["kind"] + ":" + view["category"].fillna(""))
+    counts = view.pivot_table(index="patient_id", columns="feature", values="site_id", aggfunc="count", fill_value=0)
+    means = view.dropna(subset=["value"]).pivot_table(index="patient_id", columns="feature", values="value", aggfunc="mean")
+    X = counts.join(means.add_suffix(":mean")).fillna(-1)
+    y = ground_truth(trial_id).reindex(X.index)
+    groups = view.groupby("patient_id")["site_id"].first().reindex(X.index)
+    return cross_val_score(HistGradientBoostingClassifier(max_iter=100), X, y, groups=groups, cv=GroupKFold(5)).mean()
+
+
+def test_default_leaks_detectable_and_remedies_close_them(leaky_b) -> None:
+    """Guard for the demo story: the leaks are findable, not perfect, and the four remedies close them."""
+    assert 0.65 < _coordinator_accuracy(leaky_b.trial_id, []) < 0.95
+    assert _coordinator_accuracy(leaky_b.trial_id, ALL_REMEDIES) == pytest.approx(0.5, abs=0.07)
