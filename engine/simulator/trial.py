@@ -30,16 +30,15 @@ class TrialConfig:
         n_sites: Number of trial sites.
         patients_per_site: Target enrollment per site.
         mechanisms: Leak-mechanism strengths keyed by name (see docs/assumptions.md),
-            e.g. {"nausea_rr": 2.5, "titration": True, "local_glucose": True, "cold_chain": True}.
-            An empty dict means all mechanisms off (the control scenario). Defaults for the
-            demo are engine.simulator.mechanisms.DEFAULT_MECHANISMS.
+            Defaults to DEFAULT_MECHANISMS (all four leaks on, the demo trial). Pass an empty
+            dict, `mechanisms={}`, for the control trial with every mechanism off.
     """
 
     scenario: Literal["A", "B"]
     seed: int = 2026
     n_sites: int = 20
     patients_per_site: int = 40
-    mechanisms: dict = field(default_factory=dict)
+    mechanisms: dict = field(default_factory=lambda: dict(DEFAULT_MECHANISMS))
 
 
 @dataclass

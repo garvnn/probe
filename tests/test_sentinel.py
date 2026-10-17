@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from engine.fraud_checks.base import SCORE_CLIP, SiteData, split_sites
+from engine.fake_data.sites import split_sites
+from engine.fraud_checks.base import SCORE_CLIP, SiteData
 from engine.fraud_checks.calibrate import FALSE_ALARM_BUDGET, threshold_for
 from engine.fraud_checks.checks_core import CORE_CHECKS
 from engine.fraud_checks.suite import FROZEN_DIR, CheckSuite, SiteScores, load_suite
@@ -21,7 +22,7 @@ def demo_sites(tmp_path_factory: pytest.TempPathFactory) -> list[SiteData]:
     with pytest.MonkeyPatch.context() as mp:
         mp.setenv("DB_PATH", str(tmp_path_factory.mktemp("db") / "probe.db"))
         trial = generate_trial(TrialConfig("B", seed=2026, mechanisms=DEFAULT_MECHANISMS))
-    return split_sites(trial.tables)
+    return split_sites(trial)
 
 
 @pytest.fixture(scope="module")

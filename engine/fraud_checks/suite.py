@@ -49,6 +49,8 @@ class CheckSuite:
     version: int = 0
     meta: dict = field(default_factory=dict, compare=False)
     """Calibration details from the frozen file (seeds, budget, measured false-alarm rate)."""
+    name: str = "sentinel"
+    """Shown in saved runs and the UI next to `version`."""
 
     def score_site(self, site: SiteData, reference: list[SiteData]) -> SiteScores:
         """Run every check on `site` and combine the scores. `site` is never compared with itself."""
@@ -72,7 +74,7 @@ class CheckSuite:
         The threshold stays frozen; adding a check can only flag more sites, which is why the
         patch gate re-measures false alarms.
         """
-        return CheckSuite(checks=[*self.checks, check], threshold=self.threshold, version=self.version + 1, meta={"parent": self.version})
+        return CheckSuite(checks=[*self.checks, check], threshold=self.threshold, version=self.version + 1, meta={"parent": self.version}, name=self.name)
 
 
 def check_registry() -> dict[str, type]:

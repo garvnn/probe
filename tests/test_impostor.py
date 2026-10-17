@@ -20,7 +20,9 @@ from engine.fake_data.loop import fake_data_loop
 from engine.fake_data.scripted import ScriptedAttacker, scripted_source
 from engine.fake_data.sites import split_sites
 from engine.fake_data.validate import SchemaError, validate_schema
-from engine.fraud_checks._standin import calibrate_standin
+from engine.fraud_checks.base import SCORE_CLIP
+from engine.fraud_checks.checks_core import CORE_CHECKS
+from engine.fraud_checks.suite import CheckSuite, load_suite
 from engine.simulator.mechanisms import DEFAULT_MECHANISMS
 from engine.simulator.trial import TrialConfig, generate_trial
 from integrations.daytona import LocalMockRunner, SandboxResult
@@ -81,8 +83,8 @@ def real_sites(trial):
 
 
 @pytest.fixture(scope="module")
-def suite(real_sites):
-    return calibrate_standin(real_sites)
+def suite():
+    return load_suite(0)
 
 
 @pytest.fixture(scope="module")
@@ -93,22 +95,24 @@ def scripted_run(trial, suite, real_sites):
 # ---------------------------------------------------------------- the loop
 
 
-def test_scripted_run_detected_three_times_then_escapes(scripted_run) -> None:
-    assert [r.status for r in scripted_run] == ["detected", "detected", "detected", "escaped"]
+def test_sentinel_detects_every_scripted_version(scripted_run) -> None:
+    """The stand-in let v4 escape; real Sentinel still catches it (weight not tied to BMI, vitals with
+    no visit-to-visit drift)."""
+    assert [r.status for r in scripted_run] == ["detected"] * 4
 
 
 def test_each_version_is_caught_for_the_flaw_it_has(scripted_run) -> None:
     v1, v2, v3, v4 = (set(r.fired) for r in scripted_run)
-    assert {"digit_pref", "variance"} <= v1
-    assert "corr_struct" in v2 and "digit_pref" not in v2
-    assert v3 == {"missingness"}
-    assert v4 == set()
+    assert {"digit_pref", "inlier"} <= v1  # rounded readings; patients bunched at the center
+    for v in (v2, v3, v4):
+        assert "digit_pref" not in v and "variance" not in v
+        assert {"corr_struct", "autocorr"} <= v
 
 
 def test_round_records_everything(scripted_run, suite) -> None:
     r = scripted_run[-1]
     assert r.ok and r.n_patients == 40 and r.threshold == suite.threshold
-    assert set(r.scores.per_check) == {"digit_pref", "variance", "corr_struct", "missingness"}
+    assert set(r.scores.per_check) == {c.name for c in CORE_CHECKS}
     assert r.attacker_kind == "scripted" and r.attacker_model == "scripted-v4"
     assert r.claimed_arms == {"drug": 20, "placebo": 20}
 
@@ -116,8 +120,9 @@ def test_round_records_everything(scripted_run, suite) -> None:
 def test_run_is_saved_and_labeled_not_a_result(scripted_run, suite) -> None:
     run = load_run("fd_test_scripted")
     assert run["not_a_result"] is True and "TEMPORARY" in run["label"]
-    assert run["suite"]["standin"] is True and run["suite"]["threshold"] == suite.threshold
-    assert [r["escaped"] for r in run["rounds"]] == [False, False, False, True]
+    assert run["suite"]["standin"] is False and run["suite"]["threshold"] == suite.threshold
+    assert run["suite"]["name"] == "sentinel" and run["suite"]["version"] == 0
+    assert [r["escaped"] for r in run["rounds"]] == [False] * 4
     assert all(r["code"] for r in run["rounds"])
 
 
@@ -161,11 +166,20 @@ def test_attacker_exception_counts_as_a_round(trial, suite, real_sites) -> None:
     assert [r.status for r in rounds] == ["error", "error"] and "model declined" in rounds[0].error
 
 
-# ---------------------------------------------------------------- stand-in checks, context, validation
+# ---------------------------------------------------------------- Sentinel, context, validation
 
 
-def test_standin_real_sites_all_pass(suite, real_sites) -> None:
-    assert suite.false_alarm_rate(real_sites) == 0.0
+def test_sentinel_false_alarms_on_demo_trial(suite, real_sites) -> None:
+    assert suite.false_alarm_rate(real_sites) <= 0.05  # frozen v0 flags 1 of 20 real sites (S14)
+
+
+def test_escape_path(trial, real_sites) -> None:
+    """A fake under the threshold escapes with nothing fired (permissive test-only threshold)."""
+    lax = CheckSuite(checks=[c() for c in CORE_CHECKS], threshold=SCORE_CLIP + 1)
+    attacker = RecordingAttacker()
+    rounds = fake_data_loop(trial, lax, attacker, 2, runner=TrustedScriptedRunner(), real_sites=real_sites, save=False)
+    assert [r.status for r in rounds] == ["escaped", "escaped"] and rounds[0].fired == []
+    assert attacker.feedback_seen[1]["result"] == "escaped" and attacker.feedback_seen[1]["checks_fired"] == []
 
 
 def test_context_is_aggregate_only(trial) -> None:
@@ -250,7 +264,8 @@ def test_cached_mode_replays_saved_run_in_mock_event_shape(scripted_run, monkeyp
     rounds = [json.loads(line[5:]) for line in body.splitlines() if line.startswith("data:") and '"round"' in line]
     assert len(rounds) == len(load_run(run["run_id"])["rounds"])
     assert set(rounds[0]) == set(load_mock("fake_data_rounds")[0])
-    assert rounds[-1]["escaped"] is True and all(r["_mock"] for r in rounds)
+    assert [r["escaped"] for r in rounds] == [r["escaped"] for r in load_run(run["run_id"])["rounds"]]
+    assert all(r["_mock"] for r in rounds)
 
 
 def test_cached_mode_404_for_unknown_run(monkeypatch: pytest.MonkeyPatch) -> None:

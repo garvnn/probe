@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from engine.simulator.mechanisms import DEFAULT_MECHANISMS
+
 Role = Literal["coordinator", "investigator", "pharmacist", "assessor"]
 Arm = Literal["drug", "placebo"]
 Remedy = Literal["unblinded_pharmacist", "sham_titration", "central_lab", "matched_kits"]
@@ -60,7 +62,8 @@ class TrialCreate(BaseModel):
     seed: int = 2026
     n_sites: int = 20
     patients_per_site: int = 40
-    mechanisms: dict = Field(default_factory=dict)
+    mechanisms: dict = Field(default_factory=lambda: dict(DEFAULT_MECHANISMS))
+    """Leaks on by default; send {} for the control trial."""
 
 
 class TrialSummary(Response):

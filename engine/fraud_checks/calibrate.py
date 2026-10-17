@@ -57,14 +57,11 @@ def calibrate_on_trials(checks: list[SiteCheck], trials: list[list[SiteData]], b
 
 def _trial_sites(seeds) -> list[list[SiteData]]:
     """Real sites of the demo-configuration trial for each seed (scenarios alternate A/B)."""
-    from engine.fraud_checks.base import split_sites
+    from engine.fake_data.sites import split_sites
     from engine.simulator.mechanisms import DEFAULT_MECHANISMS
     from engine.simulator.trial import TrialConfig, generate_trial
 
-    return [
-        split_sites(generate_trial(TrialConfig("A" if seed % 2 else "B", seed=seed, mechanisms=DEFAULT_MECHANISMS)).tables)
-        for seed in seeds
-    ]
+    return [split_sites(generate_trial(TrialConfig("A" if seed % 2 else "B", seed=seed, mechanisms=DEFAULT_MECHANISMS))) for seed in seeds]
 
 
 def freeze_v0(checks: list[SiteCheck], budget: float = FALSE_ALARM_BUDGET, write: bool = True) -> dict:

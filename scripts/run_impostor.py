@@ -1,12 +1,11 @@
 """Run one Impostor (fake-data) loop end to end and print a table per round. Owner: Shreyas.
 
-Generates the Trial Twin (default leak mechanisms on, the same trial Tell attacks), calibrates the check suite on its real sites, then lets the attacker
-fabricate a site for `--rounds` rounds. Every round runs in a fresh Daytona sandbox and is saved
+Generates the Trial Twin (default leak mechanisms on, the same trial Tell attacks), loads the frozen
+Sentinel check suite (v0), then lets the attacker fabricate a site for `--rounds` rounds. Every round runs in a fresh Daytona sandbox and is saved
 to data/demo_cache/<run_id>.json, which DEMO_MODE=cached replays through the API.
 
-The check suite is the TEMPORARY stand-in (engine/fraud_checks/_standin.py) until Sentinel lands.
-With no LLM key in .env the attacker is the TEMPORARY scripted one. Runs using either are
-labeled "not a result" in the saved file and in the API (`_mock: true`).
+With no LLM key in .env the attacker is the TEMPORARY scripted one. Those runs are labeled
+"not a result" in the saved file and in the API (`_mock: true`).
 
 Usage:
     .venv/bin/python scripts/run_impostor.py                     # scripted if no key, 8 rounds
@@ -57,7 +56,7 @@ def main(argv: list[str] | None = None) -> None:
     from engine.fake_data.cache import run_path
     from engine.fake_data.loop import fake_data_loop
     from engine.fake_data.sites import split_sites
-    from engine.fraud_checks._standin import calibrate_standin
+    from engine.fraud_checks.suite import load_suite
     from engine.simulator.mechanisms import DEFAULT_MECHANISMS
     from engine.simulator.trial import TrialConfig, generate_trial
     from integrations.daytona import DaytonaRunner, LocalMockRunner
@@ -65,7 +64,7 @@ def main(argv: list[str] | None = None) -> None:
     # Same trial Tell attacks (leak mechanisms on): tr_<seed>_<scenario>, e.g. tr_2026_B.
     trial = generate_trial(TrialConfig(scenario=args.scenario, seed=args.seed, mechanisms=DEFAULT_MECHANISMS))
     real_sites = split_sites(trial)
-    suite = calibrate_standin(real_sites)
+    suite = load_suite(0)
     attacker = make_attacker("training", kind=args.attacker, seed=args.seed)
     runner = DaytonaRunner(reuse=False) if args.runner == "daytona" else LocalMockRunner()
     run_id = f"fd_{time.strftime('%Y%m%dT%H%M%S')}_{attacker.kind}"
@@ -92,8 +91,8 @@ def main(argv: list[str] | None = None) -> None:
     sequence = ", ".join(r.status for r in rounds)
     print(f"sequence: {sequence}")
     print(f"saved {run_path(run_id)}")
-    if attacker.kind == "scripted" or suite.name.startswith("standin"):
-        print("NOTE: stand-in checks and/or scripted attacker. This run is not a result.")
+    if attacker.kind == "scripted":
+        print("NOTE: scripted attacker. This run is not a result.")
 
 
 if __name__ == "__main__":

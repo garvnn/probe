@@ -4,6 +4,8 @@ Owner: Garv. This file is the contract between the simulator and everyone else; 
 
 The same schema lives in code at `engine/simulator/schema.py` (`SCHEMA`, `VIEW_COLUMNS`, `coerce`). Import it rather than hard-coding columns. A test keeps this file and the code in sync.
 
+Columns with a fixed set of values (`sex`, `visit_name`, lab `test` and `source`, AE `category` and `severity`, dispensing and kit `event_type`, kit `storage`, `arm`) accept only the values listed below; the list lives in code as `schema.ALLOWED_VALUES`.
+
 Conventions: IDs are strings (`P0412`, `S07`, `V0412-W08`), dates are ISO `YYYY-MM-DD` (pandas `datetime64` in memory), units are noted per column. Trial IDs look like `tr_2026_B`.
 
 ## Entry points
@@ -84,7 +86,7 @@ One row per attended scheduled visit.
 | ae_id | str | | `AE00001`… |
 | patient_id | str | | |
 | term | str | | Reported term, e.g. `Headache`, `Nausea`, `Back pain` |
-| category | str | | Body-system group: `GI`, `Nervous system`, `Infection`, `Musculoskeletal`, `General` |
+| category | str | | Body-system group: `GI` \| `Nervous system` \| `Infection` \| `Musculoskeletal` \| `General` |
 | onset_date | date | | |
 | severity | str | | `mild` \| `moderate` \| `severe` |
 
@@ -121,7 +123,7 @@ Kit receipt and storage log at the site, before dispensing.
 | kit_id | str | | Matches `dispensing.kit_id` |
 | date | date | | |
 | event_type | str | | `received` |
-| storage | str | | Storage condition recorded at receipt, e.g. `refrigerated` |
+| storage | str | | Storage condition recorded at receipt: `refrigerated` \| `ambient` |
 | temp_c | float | °C | Temperature recorded at receipt, 1 decimal |
 
 ## ground_truth

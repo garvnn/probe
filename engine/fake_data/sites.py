@@ -1,7 +1,7 @@
-"""Split a Trial into per-site SiteData, the unit every fraud check scores. Owner: Shreyas.
+"""Split a Trial into per-site SiteData, the unit every fraud check scores. Owner: Garv (written by Shreyas).
 
-Generic, not stand-in: the real Sentinel checks score the same SiteData. Garv may want to own
-this once the real suite lands.
+The one site splitter: the Impostor loop, Sentinel scoring, and calibration all use it, so real and
+fake sites carry exactly the same tables.
 """
 
 from __future__ import annotations

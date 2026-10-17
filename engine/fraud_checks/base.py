@@ -42,29 +42,6 @@ class SiteCheck(Protocol):
         ...
 
 
-def split_sites(tables: dict[str, pd.DataFrame]) -> list[SiteData]:
-    """Split a trial's tables into one SiteData per site, sorted by site_id."""
-    patients = tables["patients"]
-    visits = tables["visits"]
-    site_of_patient = patients.set_index("patient_id")["site_id"]
-    site_of_visit = visits.set_index("visit_id")["patient_id"].map(site_of_patient)
-    keys = {
-        "patients": patients["site_id"],
-        "sites": tables["sites"]["site_id"],
-        "visits": visits["patient_id"].map(site_of_patient),
-        "labs": tables["labs"]["visit_id"].map(site_of_visit),
-        "vitals": tables["vitals"]["visit_id"].map(site_of_visit),
-    }
-    for name in ("adverse_events", "conmeds", "dispensing", "kit_storage"):
-        keys[name] = tables[name]["patient_id"].map(site_of_patient)
-    out = []
-    for site_id in sorted(patients["site_id"].unique()):
-        out.append(
-            SiteData(site_id, {name: df[(keys[name] == site_id).to_numpy()].reset_index(drop=True) for name, df in tables.items() if name in keys})
-        )
-    return out
-
-
 def others(site: SiteData, reference: list[SiteData]) -> list[SiteData]:
     """Reference sites excluding `site` itself (a real site is never scored against itself)."""
     return [r for r in reference if r.site_id != site.site_id]

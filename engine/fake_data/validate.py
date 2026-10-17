@@ -10,7 +10,7 @@ import pandas as pd
 
 from engine.fake_data.sites import PATIENT_KEYED, SITE_TABLES, VISIT_KEYED
 from engine.fraud_checks.base import SiteData
-from engine.simulator.schema import GROUND_TRUTH_SCHEMA, SCHEMA, VISIT_SCHEDULE, coerce
+from engine.simulator.schema import ALLOWED_VALUES, GROUND_TRUTH_SCHEMA, SCHEMA, coerce
 
 OWNER = "Shreyas"
 
@@ -18,15 +18,6 @@ REQUIRED_NONEMPTY = ("patients", "visits", "labs", "vitals")
 OPTIONAL_TABLES = ("ground_truth",)
 """The attacker may say which of its fake patients are on drug; it is never scored by the checks."""
 UNIQUE_KEYS = {"patients": "patient_id", "visits": "visit_id", "labs": "lab_id", "adverse_events": "ae_id", "dispensing": "event_id", "kit_storage": "event_id"}
-ALLOWED_VALUES = {
-    ("patients", "sex"): {"F", "M"},
-    ("visits", "visit_name"): set(VISIT_SCHEDULE) | {"Unscheduled"},
-    ("labs", "test"): {"hba1c", "glucose_fasting", "glucose_fingerstick"},
-    ("labs", "source"): {"central", "local"},
-    ("adverse_events", "severity"): {"mild", "moderate", "severe"},
-    ("dispensing", "event_type"): {"dispense", "return", "titration_step"},
-    ("ground_truth", "arm"): {"drug", "placebo"},
-}
 MAX_LISTED = 5
 
 

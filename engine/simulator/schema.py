@@ -108,6 +108,22 @@ VISIT_SCHEDULE: dict[str, int] = {
 """Scheduled visit name -> target study day relative to baseline. Unscheduled visits are named "Unscheduled"."""
 
 
+ALLOWED_VALUES: dict[tuple[str, str], set[str]] = {
+    ("patients", "sex"): {"F", "M"},
+    ("visits", "visit_name"): set(VISIT_SCHEDULE) | {"Unscheduled"},
+    ("labs", "test"): {"hba1c", "glucose_fasting", "glucose_fingerstick"},
+    ("labs", "source"): {"central", "local"},
+    ("adverse_events", "category"): {"GI", "Nervous system", "Infection", "Musculoskeletal", "General"},
+    ("adverse_events", "severity"): {"mild", "moderate", "severe"},
+    ("dispensing", "event_type"): {"dispense", "return", "titration_step"},
+    ("kit_storage", "event_type"): {"received"},
+    ("kit_storage", "storage"): {"refrigerated", "ambient"},
+    ("ground_truth", "arm"): {"drug", "placebo"},
+}
+"""(table, column) -> the only values that column may hold. The one place these live: the simulator
+writes only these, docs/schema.md lists them, and fake_data.validate rejects anything else."""
+
+
 def coerce(columns: dict[str, ColumnType], df: pd.DataFrame) -> pd.DataFrame:
     """Return `df` with exactly `columns`, in order, cast to their schema types.
 

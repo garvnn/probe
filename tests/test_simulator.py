@@ -28,12 +28,12 @@ def temp_db(tmp_path_factory: pytest.TempPathFactory):
 
 @pytest.fixture(scope="module")
 def trial_a():
-    return generate_trial(TrialConfig(scenario="A"))
+    return generate_trial(TrialConfig(scenario="A", mechanisms={}))
 
 
 @pytest.fixture(scope="module")
 def trial_b():
-    return generate_trial(TrialConfig(scenario="B"))
+    return generate_trial(TrialConfig(scenario="B", mechanisms={}))
 
 
 def _schema_md() -> dict[str, dict[str, str]]:
@@ -78,6 +78,16 @@ def test_shape(trial_a) -> None:
     assert set(t["labs"]["source"]) == {"central", "local"}
 
 
+def test_values_within_allowed(trial_a, leaky_a) -> None:
+    from engine.simulator.schema import ALLOWED_VALUES
+
+    for trial in (trial_a, leaky_a):
+        for (table, col), allowed in ALLOWED_VALUES.items():
+            if table in trial.tables:
+                assert set(trial.tables[table][col]) <= allowed, (table, col)
+    assert set(ground_truth(trial_a.trial_id)) <= ALLOWED_VALUES[("ground_truth", "arm")]
+
+
 def test_referential_integrity(trial_a) -> None:
     t = trial_a.tables
     pids, vids = set(t["patients"]["patient_id"]), set(t["visits"]["visit_id"])
@@ -99,7 +109,7 @@ def test_baseline_lab_equals_patient_baseline(trial_a) -> None:
 
 
 def test_deterministic(trial_a) -> None:
-    again = generate_trial(TrialConfig(scenario="A"))
+    again = generate_trial(TrialConfig(scenario="A", mechanisms={}))
     for name in TABLES:
         pdt.assert_frame_equal(trial_a.tables[name], again.tables[name])
 
@@ -234,8 +244,9 @@ def test_patients_come_from_base_ranges(trial_a) -> None:
 
 
 def test_trial_ids() -> None:
+    assert trial_id_for(TrialConfig("B")) == "tr_2026_B"
     assert trial_id_for(TrialConfig("B", mechanisms=mechanisms.DEFAULT_MECHANISMS)) == "tr_2026_B"
-    assert trial_id_for(TrialConfig("B")) == "tr_2026_B_off"
+    assert trial_id_for(TrialConfig("B", mechanisms={})) == "tr_2026_B_off"
     custom = trial_id_for(TrialConfig("B", mechanisms={"nausea_rr": 4.0}))
     assert re.fullmatch(r"tr_2026_B_m[0-9a-f]{6}", custom)
     assert custom != trial_id_for(TrialConfig("B", mechanisms={"nausea_rr": 5.0}))
@@ -248,6 +259,11 @@ def test_trial_ids() -> None:
 def test_mechanism_validation(bad: dict) -> None:
     with pytest.raises(ValueError):
         generate_trial(TrialConfig("A", mechanisms=bad))
+
+
+def test_default_config_has_leaks_on() -> None:
+    assert TrialConfig("A").mechanisms == mechanisms.DEFAULT_MECHANISMS
+    assert TrialConfig("A").mechanisms is not TrialConfig("A").mechanisms  # no shared mutable default
 
 
 def test_true_means_default_strength() -> None:
