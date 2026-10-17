@@ -1,0 +1,27 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "view": "assessor",
+  "remedies": [
+    "unblinded_pharmacist",
+    "sham_titration",
+    "central_lab"
+  ],
+  "accuracy": 0.53,
+  "auc": 0.55,
+  "null_lo": 0.45,
+  "null_hi": 0.55,
+  "utility": 0.92,
+  "top_leaks": [
+    {
+      "field": "antiemetic_conmed",
+      "label": "anti-nausea medication",
+      "importance": 0.12
+    },
+    {
+      "field": "kit_storage_events",
+      "label": "kit storage / temperature logs",
+      "importance": 0.06
+    }
+  ]
+}

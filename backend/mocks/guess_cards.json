@@ -1,0 +1,66 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "cards": [
+    {
+      "card_id": "C1",
+      "visible": {
+        "unscheduled_visits": 3,
+        "gi_adverse_events": 2,
+        "antiemetic": "yes",
+        "dispensing_events": 4,
+        "local_glucose_trend": "falling"
+      }
+    },
+    {
+      "card_id": "C2",
+      "visible": {
+        "unscheduled_visits": 0,
+        "gi_adverse_events": 0,
+        "antiemetic": "no",
+        "dispensing_events": 2,
+        "local_glucose_trend": "flat"
+      }
+    },
+    {
+      "card_id": "C3",
+      "visible": {
+        "unscheduled_visits": 2,
+        "gi_adverse_events": 1,
+        "antiemetic": "yes",
+        "dispensing_events": 4,
+        "local_glucose_trend": "falling"
+      }
+    },
+    {
+      "card_id": "C4",
+      "visible": {
+        "unscheduled_visits": 1,
+        "gi_adverse_events": 0,
+        "antiemetic": "no",
+        "dispensing_events": 2,
+        "local_glucose_trend": "flat"
+      }
+    },
+    {
+      "card_id": "C5",
+      "visible": {
+        "unscheduled_visits": 0,
+        "gi_adverse_events": 1,
+        "antiemetic": "no",
+        "dispensing_events": 2,
+        "local_glucose_trend": "flat"
+      }
+    },
+    {
+      "card_id": "C6",
+      "visible": {
+        "unscheduled_visits": 2,
+        "gi_adverse_events": 2,
+        "antiemetic": "no",
+        "dispensing_events": 4,
+        "local_glucose_trend": "falling"
+      }
+    }
+  ]
+}

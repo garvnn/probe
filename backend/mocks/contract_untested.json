@@ -1,0 +1,31 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "properties": [
+    {
+      "name": "data_authenticity",
+      "status": "untested",
+      "counterexample": null
+    },
+    {
+      "name": "treatment_confidentiality",
+      "status": "untested",
+      "counterexample": null
+    },
+    {
+      "name": "statistical_integrity",
+      "status": "untested",
+      "counterexample": null
+    },
+    {
+      "name": "safety_accessibility",
+      "status": "untested",
+      "counterexample": null
+    },
+    {
+      "name": "operational_utility",
+      "status": "untested",
+      "counterexample": null
+    }
+  ]
+}

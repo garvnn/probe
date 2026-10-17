@@ -1,0 +1,122 @@
+[
+  {
+    "_mock": true,
+    "round": 0,
+    "sandbox_id": "dt_ab10",
+    "runtime_s": 3.6,
+    "ok": true,
+    "scores": {
+      "digit_pref": 3.1,
+      "variance": 2.8,
+      "corr_struct": 3.4
+    },
+    "combined": 4.2,
+    "threshold": 2.5,
+    "escaped": false,
+    "damage": {
+      "effect_real": -0.08,
+      "effect_with_fake": -0.105,
+      "p_with_fake": 0.4
+    }
+  },
+  {
+    "_mock": true,
+    "round": 1,
+    "sandbox_id": "dt_ab11",
+    "runtime_s": 3.7,
+    "ok": true,
+    "scores": {
+      "digit_pref": 2.2,
+      "variance": 2.6,
+      "corr_struct": 3.1
+    },
+    "combined": 3.6,
+    "threshold": 2.5,
+    "escaped": false,
+    "damage": {
+      "effect_real": -0.08,
+      "effect_with_fake": -0.13,
+      "p_with_fake": 0.35
+    }
+  },
+  {
+    "_mock": true,
+    "round": 2,
+    "sandbox_id": "dt_ab12",
+    "runtime_s": 3.8,
+    "ok": true,
+    "scores": {
+      "digit_pref": 1.4,
+      "variance": 2.3,
+      "corr_struct": 2.9
+    },
+    "combined": 3.1,
+    "threshold": 2.5,
+    "escaped": false,
+    "damage": {
+      "effect_real": -0.08,
+      "effect_with_fake": -0.155,
+      "p_with_fake": 0.3
+    }
+  },
+  {
+    "_mock": true,
+    "round": 3,
+    "sandbox_id": "dt_ab13",
+    "runtime_s": 3.9,
+    "ok": true,
+    "scores": {
+      "digit_pref": 0.9,
+      "variance": 2.0,
+      "corr_struct": 2.8
+    },
+    "combined": 2.8,
+    "threshold": 2.5,
+    "escaped": false,
+    "damage": {
+      "effect_real": -0.08,
+      "effect_with_fake": -0.18,
+      "p_with_fake": 0.25
+    }
+  },
+  {
+    "_mock": true,
+    "round": 4,
+    "sandbox_id": "dt_ab14",
+    "runtime_s": 4.0,
+    "ok": true,
+    "scores": {
+      "digit_pref": 0.6,
+      "variance": 1.9,
+      "corr_struct": 2.7
+    },
+    "combined": 2.6,
+    "threshold": 2.5,
+    "escaped": false,
+    "damage": {
+      "effect_real": -0.08,
+      "effect_with_fake": -0.205,
+      "p_with_fake": 0.2
+    }
+  },
+  {
+    "_mock": true,
+    "round": 5,
+    "sandbox_id": "dt_ab15",
+    "runtime_s": 4.1,
+    "ok": true,
+    "scores": {
+      "digit_pref": 0.4,
+      "variance": 1.9,
+      "corr_struct": 2.7
+    },
+    "combined": 2.1,
+    "threshold": 2.5,
+    "escaped": true,
+    "damage": {
+      "effect_real": -0.08,
+      "effect_with_fake": -0.23,
+      "p_with_fake": 0.15
+    }
+  }
+]

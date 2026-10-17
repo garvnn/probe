@@ -1,0 +1,18 @@
+# Python 3.11
+fastapi
+uvicorn
+pydantic
+pandas
+numpy
+scipy
+statsmodels
+scikit-learn
+lightgbm
+shap
+pyarrow
+python-dotenv
+sse-starlette
+httpx
+pytest
+anthropic
+openai

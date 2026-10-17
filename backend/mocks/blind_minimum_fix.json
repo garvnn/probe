@@ -1,0 +1,179 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "utility_floor": 0.9,
+  "auc_ceiling": 0.55,
+  "costs_are_assigned": true,
+  "recommended": {
+    "combo": [
+      "unblinded_pharmacist",
+      "sham_titration",
+      "central_lab"
+    ],
+    "auc": 0.54,
+    "utility": 0.94,
+    "cost": 6.0,
+    "safety_ok": true
+  },
+  "results": [
+    {
+      "combo": [],
+      "auc": 0.9,
+      "utility": 1.0,
+      "cost": 0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist"
+      ],
+      "auc": 0.76,
+      "utility": 0.98,
+      "cost": 3.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "sham_titration"
+      ],
+      "auc": 0.8,
+      "utility": 1.0,
+      "cost": 1.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "central_lab"
+      ],
+      "auc": 0.78,
+      "utility": 0.96,
+      "cost": 2.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "matched_kits"
+      ],
+      "auc": 0.87,
+      "utility": 1.0,
+      "cost": 1.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration"
+      ],
+      "auc": 0.66,
+      "utility": 0.98,
+      "cost": 4.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "central_lab"
+      ],
+      "auc": 0.64,
+      "utility": 0.94,
+      "cost": 5.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "matched_kits"
+      ],
+      "auc": 0.73,
+      "utility": 0.98,
+      "cost": 4.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "sham_titration",
+        "central_lab"
+      ],
+      "auc": 0.68,
+      "utility": 0.96,
+      "cost": 3.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "sham_titration",
+        "matched_kits"
+      ],
+      "auc": 0.77,
+      "utility": 1.0,
+      "cost": 2.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "central_lab",
+        "matched_kits"
+      ],
+      "auc": 0.75,
+      "utility": 0.96,
+      "cost": 3.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration",
+        "central_lab"
+      ],
+      "auc": 0.54,
+      "utility": 0.94,
+      "cost": 6.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration",
+        "matched_kits"
+      ],
+      "auc": 0.63,
+      "utility": 0.98,
+      "cost": 5.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "central_lab",
+        "matched_kits"
+      ],
+      "auc": 0.61,
+      "utility": 0.94,
+      "cost": 6.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "sham_titration",
+        "central_lab",
+        "matched_kits"
+      ],
+      "auc": 0.65,
+      "utility": 0.96,
+      "cost": 4.0,
+      "safety_ok": true
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration",
+        "central_lab",
+        "matched_kits"
+      ],
+      "auc": 0.51,
+      "utility": 0.94,
+      "cost": 7.0,
+      "safety_ok": true
+    }
+  ]
+}

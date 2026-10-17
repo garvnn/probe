@@ -1,0 +1,138 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "contract": [
+    {
+      "name": "data_authenticity",
+      "status": "broken",
+      "counterexample": "Simulated fake site accepted as authentic (round 5, detector v0)"
+    },
+    {
+      "name": "treatment_confidentiality",
+      "status": "broken",
+      "counterexample": "Coordinator view predicts treatment arm above the permutation null"
+    },
+    {
+      "name": "statistical_integrity",
+      "status": "broken",
+      "counterexample": "Undetected fake sites shifted the treatment effect estimate"
+    },
+    {
+      "name": "safety_accessibility",
+      "status": "held",
+      "counterexample": null
+    },
+    {
+      "name": "operational_utility",
+      "status": "held",
+      "counterexample": null
+    }
+  ],
+  "headlines": [
+    {
+      "label": "Held-out evasion (attacker B)",
+      "before": "12 / 20",
+      "after": "2 / 20"
+    },
+    {
+      "label": "Coordinator-view arm prediction",
+      "before": "84%",
+      "after": "53%"
+    },
+    {
+      "label": "Fake sites to flip the conclusion",
+      "before": "3",
+      "after": "> 6"
+    }
+  ],
+  "margin_v0": {
+    "_mock": true,
+    "trial_id": "tr_2026_B",
+    "detector_version": 0,
+    "curve": [
+      {
+        "k": 0,
+        "effect": -0.08,
+        "p": 0.41
+      },
+      {
+        "k": 1,
+        "effect": -0.13,
+        "p": 0.22
+      },
+      {
+        "k": 2,
+        "effect": -0.18,
+        "p": 0.09
+      },
+      {
+        "k": 3,
+        "effect": -0.23,
+        "p": 0.04
+      },
+      {
+        "k": 4,
+        "effect": -0.28,
+        "p": 0.02
+      },
+      {
+        "k": 5,
+        "effect": -0.33,
+        "p": 0.01
+      },
+      {
+        "k": 6,
+        "effect": -0.38,
+        "p": 0.01
+      }
+    ],
+    "break_k": 3
+  },
+  "margin_vN": {
+    "_mock": true,
+    "trial_id": "tr_2026_B",
+    "detector_version": 1,
+    "curve": [
+      {
+        "k": 0,
+        "effect": -0.08,
+        "p": 0.41
+      },
+      {
+        "k": 1,
+        "effect": -0.13,
+        "p": 0.36
+      },
+      {
+        "k": 2,
+        "effect": -0.18,
+        "p": 0.31
+      },
+      {
+        "k": 3,
+        "effect": -0.23,
+        "p": 0.27
+      },
+      {
+        "k": 4,
+        "effect": -0.28,
+        "p": 0.22
+      },
+      {
+        "k": 5,
+        "effect": -0.33,
+        "p": 0.18
+      },
+      {
+        "k": 6,
+        "effect": -0.38,
+        "p": 0.15
+      }
+    ],
+    "break_k": null
+  },
+  "fixes": [
+    "New detector check mock_droid_check (accepted, false alarms 4.8% -> 5.1%)",
+    "Remedies: unblinded_pharmacist, sham_titration, central_lab"
+  ]
+}

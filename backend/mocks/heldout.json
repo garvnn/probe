@@ -1,0 +1,31 @@
+{
+  "_mock": true,
+  "attacker_id": "B",
+  "never_seen_during_hardening": true,
+  "rows": [
+    {
+      "detector_version": 0,
+      "attacker_id": "B",
+      "attempted": 20,
+      "escaped": 12,
+      "evasion_rate": 0.6,
+      "ci95": [
+        0.39,
+        0.78
+      ],
+      "fp_rate": 0.048
+    },
+    {
+      "detector_version": 1,
+      "attacker_id": "B",
+      "attempted": 20,
+      "escaped": 2,
+      "evasion_rate": 0.1,
+      "ci95": [
+        0.03,
+        0.3
+      ],
+      "fp_rate": 0.051
+    }
+  ]
+}

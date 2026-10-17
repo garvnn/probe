@@ -1,0 +1,12 @@
+{
+  "_mock": true,
+  "new_version": 1,
+  "status": "accepted",
+  "created_by": "droid",
+  "check_name": "mock_droid_check",
+  "check_source": "class MockCheck:\n    name = 'mock_droid_check'\n    def score(self, site, reference):\n        return 0.0\n",
+  "caught": 5,
+  "n_escaped": 6,
+  "fp_before": 0.048,
+  "fp_after": 0.051
+}

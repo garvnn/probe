@@ -1,0 +1,38 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "view": "coordinator",
+  "remedies": [],
+  "accuracy": 0.84,
+  "auc": 0.9,
+  "null_lo": 0.45,
+  "null_hi": 0.55,
+  "utility": 1.0,
+  "top_leaks": [
+    {
+      "field": "unscheduled_visits",
+      "label": "extra unscheduled visits",
+      "importance": 0.31
+    },
+    {
+      "field": "dispensing_events",
+      "label": "pharmacy dose changes",
+      "importance": 0.24
+    },
+    {
+      "field": "local_glucose_trend",
+      "label": "local fingerstick glucose trend",
+      "importance": 0.17
+    },
+    {
+      "field": "antiemetic_conmed",
+      "label": "anti-nausea medication",
+      "importance": 0.12
+    },
+    {
+      "field": "kit_storage_events",
+      "label": "kit storage / temperature logs",
+      "importance": 0.06
+    }
+  ]
+}

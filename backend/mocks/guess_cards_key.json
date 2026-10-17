@@ -1,0 +1,36 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "cards": [
+    {
+      "card_id": "C1",
+      "probe": "drug",
+      "truth": "drug"
+    },
+    {
+      "card_id": "C2",
+      "probe": "placebo",
+      "truth": "placebo"
+    },
+    {
+      "card_id": "C3",
+      "probe": "drug",
+      "truth": "drug"
+    },
+    {
+      "card_id": "C4",
+      "probe": "placebo",
+      "truth": "drug"
+    },
+    {
+      "card_id": "C5",
+      "probe": "placebo",
+      "truth": "placebo"
+    },
+    {
+      "card_id": "C6",
+      "probe": "drug",
+      "truth": "drug"
+    }
+  ]
+}

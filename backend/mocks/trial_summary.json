@@ -1,0 +1,12 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "n_patients": 800,
+  "sites": 20,
+  "roles": [
+    "coordinator",
+    "investigator",
+    "pharmacist",
+    "assessor"
+  ]
+}

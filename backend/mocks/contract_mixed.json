@@ -1,0 +1,31 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "properties": [
+    {
+      "name": "data_authenticity",
+      "status": "broken",
+      "counterexample": "Simulated fake site accepted as authentic (round 5, detector v0)"
+    },
+    {
+      "name": "treatment_confidentiality",
+      "status": "broken",
+      "counterexample": "Coordinator view predicts treatment arm above the permutation null"
+    },
+    {
+      "name": "statistical_integrity",
+      "status": "broken",
+      "counterexample": "Undetected fake sites shifted the treatment effect estimate"
+    },
+    {
+      "name": "safety_accessibility",
+      "status": "held",
+      "counterexample": null
+    },
+    {
+      "name": "operational_utility",
+      "status": "held",
+      "counterexample": null
+    }
+  ]
+}

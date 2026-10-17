@@ -1,0 +1,52 @@
+{
+  "_mock": true,
+  "trial_id": "tr_2026_B",
+  "scenario": "B",
+  "seed": 2026,
+  "n_sites": 20,
+  "n_patients": 800,
+  "drug": "PRB-101",
+  "endpoint": "Change in HbA1c, baseline to week 24",
+  "role_matrix": {
+    "coordinator": {
+      "visits": true,
+      "adverse_events": true,
+      "conmeds": true,
+      "dispensing": true,
+      "local_labs": true,
+      "central_labs": false,
+      "kit_storage": true,
+      "arm": false
+    },
+    "investigator": {
+      "visits": true,
+      "adverse_events": true,
+      "conmeds": true,
+      "dispensing": false,
+      "local_labs": true,
+      "central_labs": false,
+      "kit_storage": false,
+      "arm": false
+    },
+    "pharmacist": {
+      "visits": false,
+      "adverse_events": false,
+      "conmeds": false,
+      "dispensing": true,
+      "local_labs": false,
+      "central_labs": false,
+      "kit_storage": true,
+      "arm": true
+    },
+    "assessor": {
+      "visits": true,
+      "adverse_events": false,
+      "conmeds": false,
+      "dispensing": false,
+      "local_labs": false,
+      "central_labs": true,
+      "kit_storage": false,
+      "arm": false
+    }
+  }
+}

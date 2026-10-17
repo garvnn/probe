@@ -150,7 +150,7 @@ Evasion is reported as counts with Wilson 95% intervals. Blind accuracy uses cro
 |---|---|---|
 | Backend | Python 3.11, FastAPI + SSE | Flask |
 | Frontend | Next.js 14, React, Tailwind, Recharts | Streamlit |
-| Data / stats | pandas, NumPy, SciPy, statsmodels | — |
+| Data / stats | pandas, NumPy, SciPy, statsmodels | n/a |
 | ML / attribution | LightGBM, SHAP | sklearn, drop-column only |
 | Storage | SQLite | Parquet |
 | LLM attackers | Claude / GPT (attacker A and B on different models) | Same model with a different prompt and seed |
@@ -182,13 +182,17 @@ probe/
 
 ## Getting started
 
-> Early development. The steps below describe the intended setup.
-
 ```bash
 git clone https://github.com/garvnn/probe.git && cd probe
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
+```
+
+```bash
+make dev     # API on :8000 with autoreload
+make test    # pytest
+make mock    # API serving fixtures only (DEMO_MODE=mock), for frontend work
 ```
 
 ```
@@ -199,21 +203,21 @@ DAYTONA_API_KEY=
 CHALK_CLIENT_ID=
 CHALK_CLIENT_SECRET=
 FACTORY_API_KEY=
-DEMO_MODE=live            # live | cached
+DEMO_MODE=mock            # mock | cached | live
 DEMO_SEED=2026
 DB_PATH=data/probe.db
 ```
 
-`DEMO_MODE=cached` replays a precomputed run (`scripts/precompute_demo.py`) through the same UI at real speed, as a backup in case the APIs fail during the demo.
+`DEMO_MODE=mock` serves the JSON fixtures in `backend/mocks/` (every payload tagged `"_mock": true`) so the frontend can be built before the engine exists. `DEMO_MODE=cached` replays a precomputed run (`scripts/precompute_demo.py`) through the same UI at real speed, as a backup in case the APIs fail during the demo.
 
 ## Team
 
 | Person | Owns |
 |---|---|
-| **A — Data** | Generator, NHANES pipeline, `assumptions.md`, primary analysis + damage |
-| **B — Forger** | Attacker prompts, forger loop, Daytona, detector battery, hardening, Droid |
-| **C — Blind Breaker** | Coordinator view, classifier, permutation test, SHAP, remedies, utility, Chalk |
-| **D — Frontend + pitch** | Next.js / Streamlit, SSE, Guess Who, report page, demo script, Devpost |
+| **Garv** (Data) | Generator, NHANES pipeline, `schema.md`, `assumptions.md`, detector core (base, calibration, core checks), ground truth, primary analysis, damage, integrity margin |
+| **Shreyas** (Forger) | Attacker prompts, forger loop, acceptance gate, Droid task, Daytona, Factory, LLM integrations, demo precompute |
+| **Ajay** (Blind Breaker + evals) | Blind Breaker (features, classifier, permutation, SHAP, remedies, utility, minimum fix), rate checks, fallback check, Chalk, evals |
+| **Akarsh** (Frontend + pitch) | Next.js frontend, Guess Who, report page, demo script, Devpost |
 
 `main` should always be in a demoable state. Branch names: `data/*`, `forger/*`, `blind/*`, `ui/*`.
 
