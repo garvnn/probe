@@ -2,23 +2,20 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import warnings
+from dataclasses import asdict, dataclass, field
 from typing import Literal
 
+import numpy as np
 import pandas as pd
+
+from engine.simulator import store
+from engine.simulator.build import build_tables
+from engine.simulator.schema import SCHEMA
 
 OWNER = "Garv"
 
-TABLES = (
-    "patients",
-    "sites",
-    "visits",
-    "labs",
-    "vitals",
-    "adverse_events",
-    "conmeds",
-    "dispensing",
-)
+TABLES = tuple(SCHEMA)
 """Table names a Trial carries. `ground_truth` is deliberately not one of them."""
 
 
@@ -62,14 +59,38 @@ class Trial:
     config: TrialConfig
 
 
+def trial_id_for(config: TrialConfig) -> str:
+    """Deterministic ID: `tr_<seed>_<scenario>`, plus `_off` when every mechanism is off and
+    `_<sites>x<patients>` for a non-default size. Regenerating the same config overwrites it."""
+    trial_id = f"tr_{config.seed}_{config.scenario}"
+    if not config.mechanisms:
+        trial_id += "_off"
+    if (config.n_sites, config.patients_per_site) != (20, 40):
+        trial_id += f"_{config.n_sites}x{config.patients_per_site}"
+    return trial_id
+
+
 def generate_trial(config: TrialConfig) -> Trial:
-    """Build a trial from NHANES physiology plus the seeded trial layer.
+    """Build a trial from baseline physiology plus the seeded trial layer (see engine.simulator.build).
 
     Writes the trial tables and the locked ground-truth table to the DB.
     """
-    raise NotImplementedError(f"owner: {OWNER}")
+    if config.scenario not in ("A", "B"):
+        raise ValueError(f"scenario must be 'A' or 'B', got {config.scenario!r}")
+    if not 1 <= config.n_sites <= 99:
+        raise ValueError(f"n_sites must be 1-99, got {config.n_sites}")
+    if config.mechanisms:
+        warnings.warn("leak mechanisms are not implemented yet; generating with all mechanisms off", stacklevel=2)
+
+    trial_id = trial_id_for(config)
+    rng = np.random.default_rng(config.seed)
+    tables, arm, hidden = build_tables(trial_id, config.scenario, config.n_sites, config.patients_per_site, rng)
+    ground_truth = pd.DataFrame({"patient_id": arm.index, "arm": arm.to_numpy()})
+    store.save_trial(trial_id, asdict(config), tables, ground_truth, hidden)
+    return Trial(trial_id=trial_id, tables=tables, config=config)
 
 
 def load_trial(trial_id: str) -> Trial:
     """Load a previously generated trial from the DB (without ground truth)."""
-    raise NotImplementedError(f"owner: {OWNER}")
+    config = TrialConfig(**store.load_config(trial_id))
+    return Trial(trial_id=trial_id, tables=store.load_tables(trial_id), config=config)
