@@ -36,7 +36,17 @@ def build_user_message(context: dict, feedback: dict | None) -> str:
         if previous:
             parts += ["YOUR PREVIOUS CODE:", f"```python\n{previous}```"]
         shown = {k: v for k, v in feedback.items() if k != "previous_code"}
-        parts += ["FEEDBACK FROM LAST ROUND:", json.dumps(shown, indent=1), "Write an improved generate_site(context)."]
+        if shown.get("why_checks_fired"):
+            shown["why_checks_fired"] = [{k: v for k, v in d.items() if k != "summary"} for d in shown["why_checks_fired"]]
+        parts += ["FEEDBACK FROM LAST ROUND:", json.dumps(shown, indent=1)]
+        why = [d.get("summary") for d in feedback.get("why_checks_fired") or [] if d.get("summary")]
+        if why:
+            parts += ["WHY EACH CHECK FIRED (your site vs the typical 10th-90th percentile range on real sites):", "\n".join(f"- {w}" for w in why)]
+        parts.append(
+            "Revise YOUR PREVIOUS CODE with targeted edits that move each measure above into the real-site range. "
+            "Keep everything that already passes unchanged; do not rewrite from scratch. Output the full revised code."
+            if previous else "Write an improved generate_site(context)."
+        )
     return "\n\n".join(parts)
 
 

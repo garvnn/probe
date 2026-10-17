@@ -137,6 +137,24 @@ def test_feedback_carries_scores_and_previous_code(trial, suite, real_sites) -> 
     assert second["threshold"] == suite.threshold and second["previous_code"] == scripted_source(1)
 
 
+def test_feedback_explains_each_fired_check_with_real_site_ranges(trial, suite, real_sites) -> None:
+    attacker = RecordingAttacker()
+    fake_data_loop(trial, suite, attacker, 3, runner=TrustedScriptedRunner(), real_sites=real_sites, save=False)
+    v2_feedback = attacker.feedback_seen[2]  # feedback on scripted v2: SBP and DBP drawn independently
+    why = {d["check"]: d for d in v2_feedback["why_checks_fired"]}
+    assert set(why) == set(v2_feedback["checks_fired"]) and "corr_struct" in why
+    assert all(d["measures"] for d in why.values()), "every Sentinel core check has an explanation"
+    sbp_dbp = next(m for m in why["corr_struct"]["measures"] if "SBP and mean DBP" in m["measure"])
+    lo, hi = sbp_dbp["real_sites_typical"]
+    assert sbp_dbp["your_site"] < lo < hi and sbp_dbp["position"] == "below"
+    assert f"on your site: {sbp_dbp['your_site']}, real sites: " in why["corr_struct"]["summary"]
+    assert not re.search(r"\bP\d{4}\b|\bS\d{2}\b", json.dumps(v2_feedback["why_checks_fired"])), "aggregates only, no ids"
+
+    msg = build_user_message(public_context(trial), v2_feedback)
+    assert "WHY EACH CHECK FIRED" in msg and why["corr_struct"]["summary"] in msg
+    assert "targeted edits" in msg and v2_feedback["previous_code"] in msg
+
+
 def test_sandbox_error_and_timeout_are_rounds_with_feedback(trial, suite, real_sites) -> None:
     for stderr in ("Traceback ...\nNameError: name 'x' is not defined", "TIMEOUT: killed after 60s"):
         attacker = RecordingAttacker()

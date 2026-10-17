@@ -47,6 +47,8 @@ class Round:
         llm: Token and latency record for the attacker call, if an LLM wrote the code.
         n_patients: Fake patients produced (0 if not ok).
         claimed_arms: The attacker's own drug/placebo split, if it sent one. Never scored.
+        diagnostics: For each check that fired, what it measured on the fake site vs the typical
+            range on real sites (aggregates only). Sent to the attacker as feedback.
     """
 
     round: int
@@ -69,6 +71,7 @@ class Round:
     llm: dict | None = None
     n_patients: int = 0
     claimed_arms: dict | None = None
+    diagnostics: list[dict] = field(default_factory=list)
 
     @property
     def status(self) -> str:
@@ -83,6 +86,24 @@ def _damage(trial: Trial, fake: SiteData) -> dict | None:
         return asdict(effect_shift(trial, [fake]))
     except NotImplementedError:
         return None
+
+
+def explain_fired(suite: CheckSuite, fake: SiteData, real_sites: list[SiteData], fired: list[str]) -> list[dict]:
+    """For each fired check: what it measured on the fake site vs the typical range on real sites.
+
+    Uses the check's own `explain(site, reference)` if it has one, else engine.fake_data.explain,
+    else just the check's name. Aggregates only.
+    """
+    from engine.fake_data.explain import explain
+
+    out = []
+    for check in suite.checks:
+        if check.name not in fired:
+            continue
+        own = getattr(check, "explain", None)
+        detail = own(fake, real_sites) if callable(own) else explain(check.name, fake, real_sites)
+        out.append(detail or {"check": check.name, "measures": [], "summary": f"{check.name} fired (no detail available)"})
+    return out
 
 
 def _is_standin(suite: CheckSuite) -> bool:
@@ -178,15 +199,17 @@ def fake_data_loop(
                     scores = suite.score_site(fake, real_sites)
                     escaped = scores.combined < suite.threshold
                     fired = scores.fired(suite.threshold)
+                    diagnostics = explain_fired(suite, fake, real_sites, fired)
                     rnd = Round(
                         code=code, ok=True, scores=scores, combined=scores.combined, escaped=escaped, damage=_damage(trial, fake),
-                        fired=fired, n_patients=len(fake.tables["patients"]),
+                        fired=fired, diagnostics=diagnostics, n_patients=len(fake.tables["patients"]),
                         claimed_arms=arms.value_counts().to_dict() if arms is not None else None, **sandbox, **base,
                     )
                     feedback = {
                         "round": r + 1,
                         "result": "escaped" if escaped else "detected",
                         "checks_fired": fired,
+                        "why_checks_fired": diagnostics,
                         "scores": scores.per_check,
                         "combined": scores.combined,
                         "threshold": suite.threshold,
