@@ -2,211 +2,221 @@
 
 **Penetration testing for clinical trials.**
 
-Probe is an adversarial testing platform for clinical-trial integrity. It attacks the two assumptions every trial relies on, **the data is real** and **the blind holds**, before the trial launches. Then it hardens the defenses and checks that the fixes still hold against attackers they have never seen.
+Probe attacks a clinical trial before a real attacker or a real accident does. Then it proves the fix works on an attack it has never seen.
 
-> **Probe never touches, edits, or "cleans up" medical data.** It hardens the *fraud detector* and the *access rules*. The data stays untouched.
+> **Probe never touches, alters, or "fixes" patient data.** It hardens the *monitoring system* and the *information boundary*. It tests detectors and access policies, not records.
 
-Built at HackHarvard 2026 for the Regeneron track.
+Built at HackHarvard 2026 for the Regeneron track (Reinvent Clinical Trials), with Daytona, Chalk, and Factory.
 
 ---
+
+## The idea: a trial's Integrity Contract
+
+Every randomized trial makes promises it has to keep. Probe writes them down as an **Integrity Contract** and searches for counterexamples to it.
+
+| Property | Rule | Tested by |
+|---|---|---|
+| **Data authenticity** | Fabricated site data must not be accepted as authentic | Data Forger |
+| **Treatment confidentiality** | Coordinator- and assessor-visible data must not predict who got the real drug | Blind Breaker |
+| **Statistical integrity** | Undetected integrity failures must not materially change the trial's conclusion | Damage + integrity-margin analysis |
+| **Safety accessibility** | Required safety information stays visible to the people who need it | Constraint on every fix |
+| **Operational utility** | Defenses must keep required site tasks possible | Constraint on every fix |
+
+Every property starts as **UNTESTED**. A run flips each one to **HELD** or **BROKEN**, and a broken property comes with the counterexample that broke it.
 
 ## Why
 
-A trial's result only means something if two things are true:
+Every trial relies on two assumptions, and both are usually checked after the fact, if at all:
 
-1. **Every site's data is real.** Sites send patient data to a central team. If one site fabricates records (for payment, to look productive, or through misconduct), the trial's conclusion is wrong.
-2. **Blinded staff can't tell who got the drug.** If coordinators can work out who is on treatment, even by accident, their expectations can bias the outcome.
+1. **The data is real.** Central statistical monitoring exists, but it's tuned against human fakers. Taloni et al. (2025, *JAMA Ophthalmology*) showed a custom GPT could refine fabricated datasets until some passed forensic checks as authentic.
+2. **The blind holds.** In practice the drug leaves fingerprints in ordinary paperwork: side effects cause extra visits, and dose changes create pharmacy records. A review of 300 blinded trials found only 8% explicitly reported the risk of unblinding.
 
-Both assumptions fail in practice, and neither is stress-tested before launch. Fraud is usually caught afterward, if it is caught at all. Blinding is usually checked afterward too, by asking staff to guess, and most papers don't report a blinding check at all.
+Probe attacks both before the first patient is enrolled, the same way a bank hires pentesters before real attackers show up.
 
-The threat is also growing. Taloni et al. (2025, *JAMA Ophthalmology*) showed that a custom GPT could refine fabricated medical datasets until some of them passed forensic fraud analysis as authentic. AI-generated fake trial data that beats the checks has already been demonstrated.
+## The two attack heads
 
-## What Probe does
+### Data Forger (the main attack)
 
-One adversarial engine with two attack modes, run over the same semi-synthetic trial dataset.
+1. An LLM attacker writes Python that fabricates an entire trial site.
+2. That code runs in a **Daytona** sandbox. No LLM-written code ever runs on a laptop.
+3. The fraud detector scores the fake site. The attacker sees which checks fired and rewrites its code. This repeats for several rounds.
+4. Every fake that escapes becomes a counterexample. **Factory Droid** acts as the defender and writes a new detector check. The check ships only if false alarms on real sites stay flat.
+5. A **brand-new attacker B** (different model, prompt, and seed, never used during hardening) attacks the hardened detector. We report evasion before and after hardening against attacker B.
+6. **Damage:** how far the undetected fakes move the trial's treatment effect, and whether a drug with zero true effect could be made to look significant.
+7. **Integrity margin:** how many undetected fake sites it takes to flip the trial's conclusion, before vs after hardening.
 
-### Mode 1 — Data Forger
+### Blind Breaker
 
-An attacker agent writes code that fabricates an entire site's patient data. It runs that code, reads the fraud detector's verdict, and rewrites the code until the fake site gets through.
+1. A classifier sees **only** the site coordinator's view of the data and predicts each patient's treatment arm. It is cross-validated by site and compared against a permutation null.
+2. SHAP and drop-column attribution name the fields that leak the arm.
+3. Each leaking field maps to a real-world remedy: an unblinded pharmacist, routing efficacy labs through a central lab, sham titration in the placebo arm, or matched kits. Probe brute-forces every combination and picks the **cheapest** one that brings accuracy back to chance while operational tasks stay supported.
+4. Adverse events are never hidden. When the leak comes from safety data, the remedy is a separate blinded outcome assessor.
 
-The new part is the loop around it:
+> **We use AI where an attacker would.** Everything that judges the attack (the statistical checks, the classifier, the primary analysis, every metric) is plain, deterministic statistics you can audit.
 
-1. Every forgery that gets past the detector becomes a counterexample.
-2. The detector is retrained on those counterexamples.
-3. The retrained detector is tested against a **new attacker strategy it never trained on**.
+### What Probe does not do
 
-That held-out test shows the detector learned something general instead of memorizing one fake. It is also the step earlier work skipped.
-
-### Mode 2 — Blind Breaker
-
-An attacker sees **only** the metadata a blinded coordinator is allowed to see: visit schedules, lab routing, inventory events, and follow-up counts. From that, it tries to predict each patient's treatment arm.
-
-If it beats chance, operational details are leaking the treatment assignment. Probe then:
-
-1. Uses SHAP to find which fields leak the arm.
-2. Searches for the **smallest access-policy change** that pushes the attacker back to chance.
-3. Checks that the coordinator can still do their job with the restricted view.
-
-### One idea behind both modes
-
-Both modes test the same thing: **can an adversary infer something it shouldn't, from only what it's allowed to see?**
-
-| | Data Forger | Blind Breaker |
-|---|---|---|
-| **Protected property** | Whether a site is fabricated | A patient's treatment assignment |
-| **Adversary** | A fabricator trying to pass as authentic | A coordinator trying to infer the arm |
-| **What the adversary sees** | The submitted trial records | Coordinator-visible metadata |
-| **Attack metric** | Evasion / false-negative rate | Treatment-inference accuracy (AUC) |
-| **Defense** | Harden the monitoring model | Tighten the access / redaction policy |
-| **Constraint** | Must not start flagging legitimate sites | Must not destroy operational utility |
-
-Both follow the same cycle: **attack → exploit → patch → verify.**
+- It doesn't touch, alter, or "fix" patient data, and it doesn't use real trial data.
+- It doesn't fix leaks that happen in the room, such as patients visibly feeling sick. It can only report how much leakage is left in the data.
+- It doesn't hide safety information from anyone who needs it.
+- It makes no claim of regulatory validity or real-world fraud detection. It's a pre-launch stress test.
 
 ---
 
-## Architecture
+## The simulated trial
 
-```mermaid
-flowchart LR
-    G[Trial generator<br/>NHANES physiology + trial structure] --> D[(SQLite<br/>trials · runs · results)]
-
-    subgraph Forger[Mode 1 · Data Forger]
-        F1[LLM attacker writes<br/>fabrication code] --> F2[Daytona sandbox<br/>executes it]
-        F2 --> F3[Detector battery<br/>scores the fake site]
-        F3 -->|evaded| F4[Counterexample →<br/>harden detector]
-        F4 --> F5[Test vs held-out<br/>unseen attacker]
-        F3 -->|caught| F1
-    end
-
-    subgraph Breaker[Mode 2 · Blind Breaker]
-        B1[Coordinator-visible<br/>metadata only] --> B2[Arm classifier<br/>GBM / LightGBM]
-        B2 --> B3[SHAP leak<br/>localization]
-        B3 --> B4[Minimal access-<br/>policy search]
-        B4 --> B2
-    end
-
-    D --> Forger
-    D --> Breaker
-    Forger --> E[Chalk eval suite]
-    Breaker --> E
-    E --> UI[Dashboard]
-```
-
-### The semi-synthetic trial
-
-We know the ground truth exactly because we planted it. That's what makes every before/after number measurable.
+The fictional drug **PRB-101** treats type 2 diabetes. The primary endpoint is the change in HbA1c from baseline to week 24. All effect sizes are simulation parameters we chose, not claims about any real drug.
 
 ```
-realistic patient physiology    (NHANES — real, public, measured data)
-      ↓ randomized treatment assignment
-      ↓ site allocation
-      ↓ longitudinal visits
-      ↓ labs / adverse events
-      ↓ operational metadata
+NHANES adults with diabetes-range HbA1c        (real, public physiology)
+  ↓ 1:1 block randomization within site        (seeded, logged)
+  ↓ 20 sites × ~40 patients
+  ↓ visits: screen, baseline, wk 2/4/8/12/16/20/24 (+ unscheduled)
+  ↓ HbA1c trajectory = baseline + arm effect + patient noise + site effect
+  ↓ documented mechanisms that leave operational traces:
+      nausea on drug       → unscheduled visits, antiemetics, AE entries
+      dose titration       → pharmacy dispensing events
+      lower glucose        → local fingerstick values differ
+      cold-chain drug      → kit storage / temperature log entries
+  ↓ ground truth written to a separate, locked table
 ```
 
-- **Fraud** is planted at known sites with known methods, so detection can be scored honestly.
-- **Blinding leaks** come from documented causal mechanisms rather than planted correlations. For example, a drug side effect leads to more adverse-event follow-up visits.
+- **Scenario A:** the drug works (−0.6 HbA1c vs −0.1 on placebo).
+- **Scenario B:** the drug is useless (its effect equals placebo). This is the scenario for the damage demo.
+- **Control:** with all mechanisms turned off, the Blind Breaker must score at chance. If it doesn't, that's a bug, not a finding.
 
-### Detector battery (Forger target)
+**Bias firewall:** whoever builds the Blind Breaker never reads the generator code. They see only `docs/schema.md` and the exported views. Every leak mechanism and its strength is documented in `docs/assumptions.md`, and mechanism strengths are configurable so results can be shown across a range of settings.
 
-- Terminal-digit preference
-- Variance tests (fabricated data tends to be too uniform)
-- Correlation structure between related measurements
-- Mixed-effects site-level model
+### Detector v0 (published central-statistical-monitoring methods)
+
+| Check | What it catches |
+|---|---|
+| Terminal digit preference | Rounding to 0/5 in BP readings |
+| Variance / inlier | Fakes that are too tidy or too average |
+| Correlation structure | Broken relationships (SBP↔DBP, weight↔BMI, glucose↔HbA1c) |
+| Within-patient autocorrelation | Trajectories that are too smooth or too random |
+| Date anomalies | Weekend visits, perfect visit-window adherence |
+| AE under-reporting | Fakers forgetting side effects |
+| Missingness | Fakes with no missing data |
+
+The detection threshold is calibrated so that no more than 5% of real sites get flagged, and it is frozen before any attack runs.
 
 ---
 
 ## Evaluation
 
-Every claim is backed by a reproducible eval suite that runs on Chalk:
+**Primary metric:** held-out evasion rate. This is the fraction of attacker B's fake sites that escape detection, measured for detector v0 and for the hardened detector vN at the same false-alarm budget.
 
-| Metric | Measures |
+| Metric | Target direction |
 |---|---|
-| `fraud_evasion_rate` | How often a fabricated site gets past the detector |
-| `legitimate_false_positive_rate` | How often the detector flags real sites (should stay low) |
-| `unblinding_accuracy` / AUC | How well the Blind Breaker predicts the arm |
-| `operational_utility_retained` | How much of the coordinator's job still works after the policy fix |
-| `generalization_to_held_out_attack` | **The credibility metric:** detector performance against an attacker it never trained on |
+| `fraud_evasion_rate` (attacker A) | down after hardening |
+| `generalization_to_held_out_attack` (attacker B) | down after hardening (**the main claim**) |
+| `legitimate_false_positive_rate` | flat (≤ +1 pt) |
+| `damage_effect_shift` | reported honestly |
+| `unblinding_accuracy` / AUC | well above 50% before, ≈50% after |
+| `permutation_null` | shows that "above chance" is real |
+| `operational_utility_retained` | high |
+| `integrity_margin` | higher after hardening |
+| `minimum_fix_cost` | reported, labeled as an assigned cost |
 
-**Demo targets** (goals, not results yet):
-
-- Forger evasion against an unseen attacker: ~68% → single digits, with no rise in false positives on legitimate sites.
-- Blind Breaker accuracy: ~86% → ~51% (about chance), with ~94% operational utility kept.
+Evasion is reported as counts with Wilson 95% intervals. Blind accuracy uses cross-validation grouped by site, with a permutation p-value. **No number appears in this repo, the demo, or the pitch until it has been measured.** All metrics are logged to **Chalk**.
 
 ---
+
+## Architecture
+
+```
+┌──────────────── Frontend (Next.js · Tailwind · Recharts) ────────────────┐
+│   Setup + Contract · Forger Live · Harden + Held-Out · Blind · Report    │
+└────────────────────────────────┬─────────────────────────────────────────┘
+                                 │ REST + SSE
+┌────────────────────────────────▼──────── Backend (FastAPI) ──────────────┐
+└───┬─────────────┬──────────────────┬───────────────────┬─────────────────┘
+┌───▼──────┐ ┌────▼─────┐   ┌────────▼─────────┐   ┌─────▼──────┐
+│generator │ │  forger  │   │ detector + harden│   │   blind    │
+│ (NHANES) │ │   loop   │   │  (Factory Droid) │   │  breaker   │
+└───┬──────┘ └────┬─────┘   └────────┬─────────┘   └─────┬──────┘
+    │             └── Daytona sandboxes (all LLM-written code) ──┘
+    ▼                                                    ▼
+┌──────────────────────────────── SQLite ──────────────────────────────────┐
+└────────────────────────────────┬─────────────────────────────────────────┘
+                                 ▼
+                    Chalk (features + eval metrics)
+```
 
 ## Tech stack
 
-| Layer | Tools |
-|---|---|
-| Core | Python 3.11, pandas, NumPy |
-| Models | scikit-learn (gradient boosting), XGBoost / LightGBM |
-| Statistics | SciPy, statsmodels (forensic checks, mixed-effects model) |
-| Explainability | SHAP |
-| Data | NHANES; CDISC SDTM/ADaM pilot data (optional, depending on usage terms) |
-| Sandboxing | [Daytona](https://www.daytona.io/) |
-| Evals | [Chalk](https://chalk.ai/) |
-| Attacker reasoning | LLM API (Claude), routed through Chalk's gateway |
-| Storage | SQLite |
-| UI | Streamlit / Gradio |
-| Optional | Factory Droid writes new detector rules when a forgery escapes |
+| Layer | Choice | Fallback |
+|---|---|---|
+| Backend | Python 3.11, FastAPI + SSE | Flask |
+| Frontend | Next.js 14, React, Tailwind, Recharts | Streamlit |
+| Data / stats | pandas, NumPy, SciPy, statsmodels | — |
+| ML / attribution | LightGBM, SHAP | sklearn, drop-column only |
+| Storage | SQLite | Parquet |
+| LLM attackers | Claude / GPT (attacker A and B on different models) | Same model with a different prompt and seed |
+| Sandbox | Daytona | Local Docker |
+| Evals | Chalk | Local metrics table |
+| Defender agent | Factory Droid | Fallback classifier check |
+| Data source | NHANES (public, de-identified, CDC) | Published distributions |
 
-### How the sponsor tools are used
-
-- **Daytona** runs the code the Forger agent writes, which is untrusted, inside isolated sandboxes. Its **fork** feature snapshots a trial episode and replays it with and without the defense, side by side.
-- **Chalk** is the evaluation layer for both modes. It produces the reproducible numbers behind "the defense got better."
-- **Factory Droid** (optional) writes the new detector rule that catches an escaped forgery, inside the running loop.
-
----
-
-## Repository layout (planned)
+## Repository layout
 
 ```
 probe/
-├── probe/
-│   ├── generator/      # semi-synthetic trial generator (NHANES base → trial)
-│   ├── forger/         # attacker agent, Daytona runner, co-evolution loop
-│   ├── detectors/      # fraud detector battery
-│   ├── breaker/        # arm classifier, SHAP localization, policy search
-│   ├── evals/          # Chalk eval suite
-│   └── db.py           # SQLite persistence
-├── app/                # dashboard
-├── data/               # NHANES pulls, generated trials (gitignored)
-├── seeds/              # deterministic demo seeds
-└── tests/
+├── frontend/       Next.js app: 5 screens, charts, SSE client
+├── backend/        FastAPI: routes, run state, background tasks, SSE
+├── engine/
+│   ├── generator/  NHANES load, trial builder, mechanisms, ground truth
+│   ├── detector/   SiteCheck base, check battery, calibration, versions
+│   ├── forger/     attacker prompts, loop, schema validation
+│   ├── harden/     Droid task builder, acceptance gate, fallback check
+│   ├── blind/      views, classifier, permutation, SHAP, remedies, utility
+│   └── analysis/   ANCOVA primary analysis, damage metric
+├── integrations/   daytona.py, chalk.py, factory.py (thin, mockable)
+├── evals/          metric definitions, scenario suite, results export
+├── scripts/        download_nhanes.py, precompute_demo.py, run_full_eval.py
+├── data/           raw NHANES (gitignored), processed parquet, demo cache
+├── tests/          generator sanity, mechanisms-off control, schema tests
+└── docs/           schema.md, assumptions.md, pitch notes
 ```
 
 ## Getting started
 
-> The project is in early development. Setup steps will firm up as the code lands.
+> Early development. The steps below describe the intended setup.
 
 ```bash
-git clone https://github.com/garvnn/probe.git
-cd probe
+git clone https://github.com/garvnn/probe.git && cd probe
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env    # add DAYTONA_API_KEY, CHALK credentials, ANTHROPIC_API_KEY
+cp .env.example .env
 ```
 
----
+```
+ANTHROPIC_API_KEY=        # or OPENAI_API_KEY
+ATTACKER_A_MODEL=
+ATTACKER_B_MODEL=
+DAYTONA_API_KEY=
+CHALK_CLIENT_ID=
+CHALK_CLIENT_SECRET=
+FACTORY_API_KEY=
+DEMO_MODE=live            # live | cached
+DEMO_SEED=2026
+DB_PATH=data/probe.db
+```
+
+`DEMO_MODE=cached` replays a precomputed run (`scripts/precompute_demo.py`) through the same UI at real speed, as a backup in case the APIs fail during the demo.
 
 ## Team
 
-| Role | Owns |
+| Person | Owns |
 |---|---|
-| **P1 — Data & Trial Generator** | Credibility: NHANES base, trial structure, planted fraud, causal leak mechanisms |
-| **P2 — Forger Loop** | The core loop: detector battery, attacker agent, escape → harden → held-out test, Daytona |
-| **P3 — Blind Breaker + Dashboard** | Arm attacker, SHAP, minimal policy search, the UI |
-| **P4 — Evals, Pitch & Video** | Chalk eval harness, demo script, Q&A prep, content |
+| **A — Data** | Generator, NHANES pipeline, `assumptions.md`, primary analysis + damage |
+| **B — Forger** | Attacker prompts, forger loop, Daytona, detector battery, hardening, Droid |
+| **C — Blind Breaker** | Coordinator view, classifier, permutation test, SHAP, remedies, utility, Chalk |
+| **D — Frontend + pitch** | Next.js / Streamlit, SSE, Guess Who, report page, demo script, Devpost |
 
-## Principles
-
-1. **The Forger loop is the priority.** If time runs short, simplify the Blind Breaker, never the loop.
-2. **The held-out number is what makes the result credible.** It has to be real, and it has to be visible.
-3. **We harden the detector and the access rules, never the data.**
-4. **Finishing beats features.** A working single-mode demo beats a broken two-mode one.
+`main` should always be in a demoable state. Branch names: `data/*`, `forger/*`, `blind/*`, `ui/*`.
 
 ## Responsible use
 
-Probe is a defensive tool. Its attackers exist to find weaknesses in fraud monitoring and blinding controls so those weaknesses can be fixed before a real trial depends on them. Probe runs only on semi-synthetic data, and forged output never leaves the sandbox.
+Probe is a defensive stress-test harness. Its attackers exist only to find weaknesses in fraud monitoring and blinding controls before a real trial depends on them. It runs only on semi-synthetic data, and attacker code runs only in isolated sandboxes.
