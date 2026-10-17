@@ -6,6 +6,7 @@ ScriptedAttacker. Either way the loop only calls `write_fake_site_code(context, 
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from dataclasses import dataclass, field
@@ -100,3 +101,9 @@ def make_attacker(role: Literal["training", "test"] = "training", kind: Literal[
             raise RuntimeError(f"--attacker llm needs a key for {model}: set ANTHROPIC_API_KEY (claude-*) or OPENAI_API_KEY in .env")
         return ScriptedAttacker(attacker_id=role, seed=seed)
     return Attacker(attacker_id=role, model=model, system_prompt_path=PROMPT_FOR_ROLE[role], seed=seed, llm=llm)
+
+
+def prompt_sha256(attacker) -> str | None:
+    """SHA-256 of the attacker's system prompt file, so a run records exactly which prompt it used."""
+    path = getattr(attacker, "system_prompt_path", None)
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest() if path and Path(path).exists() else None

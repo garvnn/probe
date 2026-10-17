@@ -8,6 +8,8 @@ Switching from the scripted attacker to a real LLM is configuration only: put a 
     OPENAI_API_KEY            used for every other model
     OPENAI_BASE_URL           optional, for OpenAI-compatible providers other than OpenAI
     ATTACKER_EFFORT           optional Claude effort: low | medium | high (default medium)
+    ATTACKER_PRICE_IN_PER_1M  optional USD per 1M input tokens, for the cost estimate (default 0)
+    ATTACKER_PRICE_OUT_PER_1M optional USD per 1M output tokens (default 0)
 
 Every call is recorded as an LLMCall (model, tokens, latency) on the client's `calls` list.
 """
@@ -134,6 +136,13 @@ class OpenAILLM:
         if getattr(choice.message, "refusal", None):
             raise LLMRefusal(f"model declined: {choice.message.refusal}")
         return choice.message.content or ""
+
+
+def estimate_cost_usd(input_tokens: int, output_tokens: int) -> float:
+    """Estimated spend from ATTACKER_PRICE_IN_PER_1M / ATTACKER_PRICE_OUT_PER_1M (0 if unset)."""
+    price_in = float(_env("ATTACKER_PRICE_IN_PER_1M") or 0)
+    price_out = float(_env("ATTACKER_PRICE_OUT_PER_1M") or 0)
+    return (input_tokens * price_in + output_tokens * price_out) / 1_000_000
 
 
 def model_for(role: str) -> str:

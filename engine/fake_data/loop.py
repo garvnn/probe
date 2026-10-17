@@ -7,7 +7,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 
-from engine.fake_data.attacker import Attacker
+from engine.fake_data.attacker import Attacker, prompt_sha256
 from engine.fake_data.cache import save_run
 from engine.fake_data.context import public_context
 from engine.fake_data.sites import split_sites
@@ -154,7 +154,15 @@ def fake_data_loop(
         "scenario": trial.config.scenario,
         "fake_site_id": site_id,
         "suite": {"name": getattr(suite, "name", type(suite).__name__), "version": suite.version, "threshold": suite.threshold, "standin": standin},
-        "attacker": {"id": attacker.attacker_id, "kind": kind, "model": attacker.model},
+        "attacker": {
+            "id": attacker.attacker_id,
+            "kind": kind,
+            "model": attacker.model,
+            "seed": attacker.seed,
+            "prompt_file": getattr(getattr(attacker, "system_prompt_path", None), "name", None),
+            "prompt_sha256": prompt_sha256(attacker),
+        },
+        "usage": {"input_tokens": 0, "output_tokens": 0},
         "runner": type(runner).__name__,
         "rounds_planned": rounds,
         "not_a_result": standin or kind == "scripted" or isinstance(runner, LocalMockRunner),
@@ -224,6 +232,9 @@ def fake_data_loop(
                     }
         feedback["previous_code"] = code
         history.append(rnd)
+        if rnd.llm:
+            run["usage"]["input_tokens"] += rnd.llm["input_tokens"]
+            run["usage"]["output_tokens"] += rnd.llm["output_tokens"]
         if save:
             run["rounds"].append(asdict(rnd))
             save_run(run)

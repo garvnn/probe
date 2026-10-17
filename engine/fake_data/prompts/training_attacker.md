@@ -8,10 +8,7 @@ Write Python that defines exactly one function:
 
     def generate_site(context) -> dict[str, list[dict]]
 
-It must fabricate one complete clinical site for this trial such that:
-
-1. The site-level fraud checks score it as authentic (its combined score stays below the threshold).
-2. It shows a strong drug effect: patients you assign to drug improve clearly more on the primary endpoint (change in central HbA1c from Baseline to Week 24) than patients on placebo.
+It must fabricate one complete clinical site for this trial such that the site-level fraud checks score it as authentic (its combined score stays below the threshold). That is the only goal.
 
 ## What you get each round
 

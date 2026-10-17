@@ -8,9 +8,10 @@ With no LLM key in .env the attacker is the TEMPORARY scripted one. Those runs a
 "not a result" in the saved file and in the API (`_mock: true`).
 
 Usage:
-    .venv/bin/python scripts/run_impostor.py                     # scripted if no key, 8 rounds
-    .venv/bin/python scripts/run_impostor.py --attacker llm --rounds 8
-    .venv/bin/python scripts/run_impostor.py --runner mock       # no Daytona key; never runs the code
+    .venv/bin/python scripts/run_impostor.py                         # scripted if no key, 10 rounds, time-derived seed
+    .venv/bin/python scripts/run_impostor.py --attacker llm --seed 41  # one collection run with a fixed attacker seed
+    .venv/bin/python scripts/run_impostor.py --suite-version 1       # attack a later frozen Sentinel version
+    .venv/bin/python scripts/run_impostor.py --runner mock           # no Daytona key; never runs the code
 """
 
 from __future__ import annotations
@@ -40,16 +41,38 @@ def row(rnd) -> str:
     )
 
 
-def main(argv: list[str] | None = None) -> None:
+def default_seed() -> int:
+    """A fresh attacker seed per run, derived from the current time, so runs are distinct."""
+    return int(time.time() * 1000) % 1_000_000
+
+
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--attacker", choices=["auto", "scripted", "llm"], default="auto", help="auto = llm if a key is set, else scripted")
-    parser.add_argument("--rounds", type=int, default=8)
+    parser.add_argument("--rounds", type=int, default=10)
+    parser.add_argument("--seed", type=int, default=None, help="attacker seed (default: derived from the current time); recorded in the run")
     parser.add_argument("--scenario", choices=["A", "B"], default="B")
-    parser.add_argument("--seed", type=int, default=2026)
+    parser.add_argument("--trial-seed", type=int, default=2026, help="Trial Twin seed; 2026 + B = tr_2026_B, the trial Tell attacks")
+    parser.add_argument("--suite-version", type=int, default=0, help="frozen Sentinel version to attack (load_suite)")
     parser.add_argument("--runner", choices=["daytona", "mock"], default="daytona", help="mock never executes the code (wiring only)")
     parser.add_argument("--timeout", type=int, default=60)
     parser.add_argument("--stop-on-escape", action="store_true")
-    args = parser.parse_args(argv)
+    return parser
+
+
+def usage_summary(rounds) -> tuple[int, int, float]:
+    """(input tokens, output tokens, estimated USD) over every LLM call in `rounds`."""
+    from integrations.llm import estimate_cost_usd
+
+    tok_in = sum(r.llm["input_tokens"] for r in rounds if r.llm)
+    tok_out = sum(r.llm["output_tokens"] for r in rounds if r.llm)
+    return tok_in, tok_out, estimate_cost_usd(tok_in, tok_out)
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = build_parser().parse_args(argv)
+    if args.seed is None:
+        args.seed = default_seed()
     load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
     from engine.fake_data.attacker import make_attacker
@@ -62,15 +85,15 @@ def main(argv: list[str] | None = None) -> None:
     from integrations.daytona import DaytonaRunner, LocalMockRunner
 
     # Same trial Tell attacks (leak mechanisms on): tr_<seed>_<scenario>, e.g. tr_2026_B.
-    trial = generate_trial(TrialConfig(scenario=args.scenario, seed=args.seed, mechanisms=DEFAULT_MECHANISMS))
+    trial = generate_trial(TrialConfig(scenario=args.scenario, seed=args.trial_seed, mechanisms=DEFAULT_MECHANISMS))
     real_sites = split_sites(trial)
-    suite = load_suite(0)
+    suite = load_suite(args.suite_version)
     attacker = make_attacker("training", kind=args.attacker, seed=args.seed)
     runner = DaytonaRunner(reuse=False) if args.runner == "daytona" else LocalMockRunner()
-    run_id = f"fd_{time.strftime('%Y%m%dT%H%M%S')}_{attacker.kind}"
+    run_id = f"fd_{time.strftime('%Y%m%dT%H%M%S')}_{attacker.kind}_s{args.seed}"
 
     print(f"trial {trial.trial_id}: {len(real_sites)} real sites; suite '{suite.name}' threshold {suite.threshold} (false alarms {suite.false_alarm_rate(real_sites):.0%})")
-    print(f"attacker: {attacker.kind} ({attacker.model}); runner: {type(runner).__name__}; run {run_id}\n")
+    print(f"attacker: {attacker.kind} ({attacker.model}), seed {args.seed}; suite v{suite.version}; runner: {type(runner).__name__}; run {run_id}\n")
     print(HEADER)
     t = time.perf_counter()
     rounds = fake_data_loop(
@@ -90,6 +113,8 @@ def main(argv: list[str] | None = None) -> None:
     )
     sequence = ", ".join(r.status for r in rounds)
     print(f"sequence: {sequence}")
+    tok_in, tok_out, cost = usage_summary(rounds)
+    print(f"tokens: {tok_in:,} in / {tok_out:,} out | estimated cost ${cost:.4f} (ATTACKER_PRICE_IN_PER_1M / _OUT_PER_1M in .env)")
     print(f"saved {run_path(run_id)}")
     if attacker.kind == "scripted":
         print("NOTE: scripted attacker. This run is not a result.")
