@@ -21,6 +21,7 @@ from engine.fake_data.scripted import ScriptedAttacker, scripted_source
 from engine.fake_data.sites import split_sites
 from engine.fake_data.validate import SchemaError, validate_schema
 from engine.fraud_checks._standin import calibrate_standin
+from engine.simulator.mechanisms import DEFAULT_MECHANISMS
 from engine.simulator.trial import TrialConfig, generate_trial
 from integrations.daytona import LocalMockRunner, SandboxResult
 from integrations.llm import LocalMockLLM
@@ -71,7 +72,7 @@ def isolated(tmp_path_factory: pytest.TempPathFactory):
 
 @pytest.fixture(scope="module")
 def trial():
-    return generate_trial(TrialConfig(scenario="B"))
+    return generate_trial(TrialConfig(scenario="B", mechanisms=DEFAULT_MECHANISMS))
 
 
 @pytest.fixture(scope="module")
@@ -241,7 +242,7 @@ def test_cached_mode_replays_saved_run_in_mock_event_shape(scripted_run, monkeyp
     monkeypatch.setenv("DEMO_MODE", "cached")
     monkeypatch.setenv("CACHED_REPLAY_SPEED", "0")
     client = TestClient(app)
-    run = client.post("/fake-data/runs", json={"trial_id": "tr_2026_B_off"}).json()
+    run = client.post("/fake-data/runs", json={"trial_id": "tr_2026_B"}).json()
     assert run["run_id"].startswith("fd_") and run["_mock"] is True and run["status"] == "done"
 
     with client.stream("GET", f"/fake-data/runs/{run['run_id']}/stream") as r:

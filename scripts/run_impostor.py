@@ -1,6 +1,6 @@
 """Run one Impostor (fake-data) loop end to end and print a table per round. Owner: Shreyas.
 
-Generates the Trial Twin, calibrates the check suite on its real sites, then lets the attacker
+Generates the Trial Twin (default leak mechanisms on, the same trial Tell attacks), calibrates the check suite on its real sites, then lets the attacker
 fabricate a site for `--rounds` rounds. Every round runs in a fresh Daytona sandbox and is saved
 to data/demo_cache/<run_id>.json, which DEMO_MODE=cached replays through the API.
 
@@ -58,10 +58,12 @@ def main(argv: list[str] | None = None) -> None:
     from engine.fake_data.loop import fake_data_loop
     from engine.fake_data.sites import split_sites
     from engine.fraud_checks._standin import calibrate_standin
+    from engine.simulator.mechanisms import DEFAULT_MECHANISMS
     from engine.simulator.trial import TrialConfig, generate_trial
     from integrations.daytona import DaytonaRunner, LocalMockRunner
 
-    trial = generate_trial(TrialConfig(scenario=args.scenario, seed=args.seed))
+    # Same trial Tell attacks (leak mechanisms on): tr_<seed>_<scenario>, e.g. tr_2026_B.
+    trial = generate_trial(TrialConfig(scenario=args.scenario, seed=args.seed, mechanisms=DEFAULT_MECHANISMS))
     real_sites = split_sites(trial)
     suite = calibrate_standin(real_sites)
     attacker = make_attacker("training", kind=args.attacker, seed=args.seed)
