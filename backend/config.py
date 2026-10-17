@@ -26,3 +26,8 @@ def demo_mode() -> DemoMode:
 def mock_stream_interval_s() -> float:
     """Delay between mock SSE rounds. 1s for the UI; tests set MOCK_STREAM_INTERVAL_S=0."""
     return float(os.environ.get("MOCK_STREAM_INTERVAL_S", "1.0"))
+
+
+def cached_replay_speed() -> float:
+    """Multiplier on recorded round durations when replaying a cached run. 1.0 = real speed, 0 = instant (tests)."""
+    return float(os.environ.get("CACHED_REPLAY_SPEED", "1.0"))

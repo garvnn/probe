@@ -236,18 +236,25 @@ def execute_in_sandbox(sandbox, code: str, inputs: dict, timeout: int) -> Sandbo
 
 CANNED_FAKE_SITE: dict[str, list[dict]] = {
     "patients": [
-        {"patient_id": "PMOCK01", "site_id": "SFAKE", "age": 58, "sex": "F", "bmi": 31.2, "baseline_hba1c": 8.4},
-        {"patient_id": "PMOCK02", "site_id": "SFAKE", "age": 63, "sex": "M", "bmi": 29.8, "baseline_hba1c": 8.1},
+        {"patient_id": "P9901", "site_id": "S21", "age": 58, "sex": "F", "bmi": 31.2, "baseline_hba1c": 8.4},
+        {"patient_id": "P9902", "site_id": "S21", "age": 63, "sex": "M", "bmi": 29.8, "baseline_hba1c": 8.1},
     ],
     "visits": [
-        {"visit_id": "VMOCK01-W08", "patient_id": "PMOCK01", "visit_name": "Week 8", "date": "2026-03-12", "scheduled": True},
-        {"visit_id": "VMOCK02-W08", "patient_id": "PMOCK02", "visit_name": "Week 8", "date": "2026-03-13", "scheduled": True},
+        {"visit_id": "V9901-BL", "patient_id": "P9901", "visit_name": "Baseline", "date": "2026-03-12", "scheduled": True},
+        {"visit_id": "V9902-BL", "patient_id": "P9902", "visit_name": "Baseline", "date": "2026-03-13", "scheduled": True},
     ],
-    "labs": [],
-    "vitals": [],
+    "labs": [
+        {"lab_id": "LM00001", "visit_id": "V9901-BL", "test": "hba1c", "value": 8.4, "source": "central", "draw_time": "08:15"},
+        {"lab_id": "LM00002", "visit_id": "V9902-BL", "test": "hba1c", "value": 8.1, "source": "central", "draw_time": "09:40"},
+    ],
+    "vitals": [
+        {"visit_id": "V9901-BL", "sbp": 131, "dbp": 79, "weight": 84.2},
+        {"visit_id": "V9902-BL", "sbp": 138, "dbp": 86, "weight": 92.7},
+    ],
     "adverse_events": [],
     "conmeds": [],
     "dispensing": [],
+    "kit_storage": [],
 }
 """Mock fake site for wiring and tests. Not a measured or generated result."""
 
