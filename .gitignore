@@ -17,6 +17,8 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 !data/processed/nhanes_base.csv
+data/demo_cache/*
+!data/demo_cache/.gitkeep
 *.db
 
 # Frontend

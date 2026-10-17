@@ -9,6 +9,7 @@ statsmodels
 scikit-learn
 lightgbm
 shap
+daytona==0.225.0
 pyarrow
 python-dotenv
 sse-starlette
