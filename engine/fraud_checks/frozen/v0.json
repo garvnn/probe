@@ -1,0 +1,30 @@
+{
+  "version": 0,
+  "checks": [
+    "digit_pref",
+    "variance",
+    "inlier",
+    "corr_struct",
+    "autocorr"
+  ],
+  "threshold": 3.11868,
+  "combined": "max",
+  "flag_rule": "combined >= threshold",
+  "budget": 0.05,
+  "calibration": {
+    "trial_config": "DEFAULT_MECHANISMS, 20 sites x 40 patients, scenarios alternate A/B",
+    "seeds": "1-50",
+    "n_sites": 1000,
+    "false_alarm_rate": 0.05
+  },
+  "verification": {
+    "seeds": "101-200",
+    "n_sites": 2000,
+    "false_alarm_rate": 0.051,
+    "demo_seed": 2026,
+    "demo_sites_flagged": [
+      "S14"
+    ]
+  },
+  "frozen_on": "2026-10-17"
+}

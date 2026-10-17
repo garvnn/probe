@@ -26,7 +26,7 @@ def test_import(name: str) -> None:
 
 
 def test_stub_names_owner() -> None:
-    from engine.fraud_checks.checks_core import TerminalDigitCheck
+    from engine.fraud_checks.checks_rates import DateAnomalyCheck
 
-    with pytest.raises(NotImplementedError, match="owner: Garv"):
-        TerminalDigitCheck().score(None, [])  # type: ignore[arg-type]
+    with pytest.raises(NotImplementedError, match="owner: Ajay"):
+        DateAnomalyCheck().score(None, [])  # type: ignore[arg-type]

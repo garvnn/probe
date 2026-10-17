@@ -29,6 +29,7 @@ What a coordinator can't be shielded from: adverse events have to reach the inve
 | Scenario A effect | −0.6 points on drug vs −0.1 on placebo at Week 24 | Approached with a 6-week time constant |
 | Scenario B effect | −0.1 on both arms | Equal to placebo (useless drug) |
 | Between-patient response SD | 0.8 points | Site effect SD 0.1; central assay SD 0.15 |
+| Visit-to-visit vitals | SBP ±8 mmHg (lag-1 autocorrelation 0.3), DBP follows 0.4 × SBP deviation ±5, weight ±1.5 kg (lag-1 autocorrelation 0.8) | Around each patient's NHANES baseline |
 | Missed visits / dropout | 3% of post-baseline visits / 5% of patients | Same in both arms |
 | Background unscheduled visits | 0.25 per patient | Same in both arms |
 | Background AEs | 0.6 per patient (headache, nasopharyngitis, back pain, arthralgia, dizziness, fatigue, nausea, diarrhoea) | Same in both arms |

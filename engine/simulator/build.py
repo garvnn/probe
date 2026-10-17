@@ -39,6 +39,10 @@ EFFECT_TAU_WEEKS = 6.0
 SITE_EFFECT_SD = 0.1
 PATIENT_RESPONSE_SD = 0.8
 HBA1C_ASSAY_SD = 0.15
+SBP_VISIT_SD, SBP_AR = 8.0, 0.3
+"""Visit-to-visit SBP deviation from the patient's mean (mmHg) and its lag-1 autocorrelation."""
+WEIGHT_VISIT_SD, WEIGHT_AR = 1.5, 0.8
+"""Visit-to-visit weight deviation (kg); weight drifts slowly, so consecutive visits are correlated."""
 
 CENTRAL_LAB_VISITS = ("Screening", "Baseline", "Week 12", "Week 24")
 DISPENSE_VISITS = ("Baseline", "Week 4", "Week 8", "Week 12", "Week 16", "Week 20")
@@ -69,6 +73,13 @@ def _visit_code(name: str) -> str:
     if name == "Baseline":
         return "BL"
     return f"W{int(name.split()[1]):02d}"
+
+
+def _ar1(prev: float | None, phi: float, sd: float, rng: np.random.Generator) -> float:
+    """Next value of a stationary AR(1) series with marginal SD `sd`."""
+    if prev is None:
+        return rng.normal(0.0, sd)
+    return phi * prev + rng.normal(0.0, sd * math.sqrt(1.0 - phi**2))
 
 
 def _draw_time(rng: np.random.Generator) -> str:
@@ -144,6 +155,7 @@ def _build_raw(scenario: str, n_sites: int, per_site: int, rng: np.random.Genera
             attended.append((name, date if name == "Baseline" else weekday(date, rng)))
 
         phys = physio.loc[p.patient_id]
+        e_sbp = e_weight = None
         for name, date in attended:
             vid = f"V{pnum}-{_visit_code(name)}"
             weeks = max((date - baseline).days, 0) / 7.0
@@ -161,13 +173,14 @@ def _build_raw(scenario: str, n_sites: int, per_site: int, rng: np.random.Genera
                 fingerstick = max(eag(p.baseline_hba1c) + rng.normal(0.0, 25.0), 50.0)
                 labs.append({"visit_id": vid, "test": "glucose_fingerstick", "value": float(round(fingerstick)), "source": "local", "draw_time": draw_time})
 
-            e_sbp = rng.normal(0.0, 8.0)
+            e_sbp = _ar1(e_sbp, SBP_AR, SBP_VISIT_SD, rng)
+            e_weight = _ar1(e_weight, WEIGHT_AR, WEIGHT_VISIT_SD, rng)
             vitals.append(
                 {
                     "visit_id": vid,
                     "sbp": int(round(phys["sbp"] + e_sbp)),
                     "dbp": int(round(phys["dbp"] + 0.4 * e_sbp + rng.normal(0.0, 5.0))),
-                    "weight": round(phys["weight"] + rng.normal(0.0, 0.8), 1),
+                    "weight": round(phys["weight"] + e_weight, 1),
                 }
             )
 
