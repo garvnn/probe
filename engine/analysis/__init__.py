@@ -1,1 +1,1 @@
-"""Primary analysis, damage, and integrity margin. Owner: Garv."""
+"""Primary analysis, damage, and breaking point. Owner: Garv."""

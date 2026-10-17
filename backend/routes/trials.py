@@ -11,7 +11,7 @@ OWNER = "Garv"
 
 @router.post("", response_model=TrialSummary)
 def create_trial(body: TrialCreate) -> TrialSummary:
-    """Generate a trial from config (engine.generator.trial.generate_trial)."""
+    """Generate a trial from config (engine.simulator.trial.generate_trial)."""
     return serve("trial_summary", TrialSummary, OWNER)
 
 

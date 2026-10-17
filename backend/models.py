@@ -82,21 +82,21 @@ class TrialDetail(Response):
     """Role -> field group -> visible. Drives the "who sees what" panel."""
 
 
-# ---------------------------------------------------------------- forger
+# ---------------------------------------------------------------- fake data
 
 
-class ForgerRunCreate(BaseModel):
+class FakeDataRunCreate(BaseModel):
     trial_id: str
-    attacker_id: str = "A"
-    detector_version: int = 0
+    attacker_id: str = "training"
+    suite_version: int = 0
     rounds: int = 8
 
 
-class ForgerRun(Response):
+class FakeDataRun(Response):
     run_id: str
     trial_id: str
     attacker_id: str
-    detector_version: int
+    suite_version: int
     status: Literal["queued", "running", "done", "error"]
 
 
@@ -107,7 +107,7 @@ class RoundDamage(BaseModel):
 
 
 class RoundEvent(Response):
-    """One SSE event per forger round."""
+    """One SSE event per fake-data round."""
 
     round: int
     sandbox_id: str
@@ -120,16 +120,16 @@ class RoundEvent(Response):
     damage: RoundDamage | None
 
 
-# ---------------------------------------------------------------- detector / held-out
+# ---------------------------------------------------------------- patch / test attacker
 
 
-class HardenRequest(BaseModel):
+class PatchRequest(BaseModel):
     trial_id: str
     run_id: str
-    detector_version: int = 0
+    suite_version: int = 0
 
 
-class HardenResult(Response):
+class PatchResult(Response):
     new_version: int
     status: str
     """"accepted" or "rejected: <reason>"."""
@@ -142,14 +142,14 @@ class HardenResult(Response):
     fp_after: float
 
 
-class HeldoutRequest(BaseModel):
+class TestAttackerRequest(BaseModel):
     trial_id: str
-    attacker_id: str = "B"
-    detector_versions: list[int] = Field(default_factory=lambda: [0])
+    attacker_id: str = "test"
+    suite_versions: list[int] = Field(default_factory=lambda: [0])
 
 
-class HeldoutRow(BaseModel):
-    detector_version: int
+class TestAttackerRow(BaseModel):
+    suite_version: int
     attacker_id: str
     attempted: int
     escaped: int
@@ -159,16 +159,16 @@ class HeldoutRow(BaseModel):
     fp_rate: float
 
 
-class HeldoutResult(Response):
+class TestAttackerResult(Response):
     attacker_id: str
-    never_seen_during_hardening: bool
-    rows: list[HeldoutRow]
+    never_seen_during_patching: bool
+    rows: list[TestAttackerRow]
 
 
 # ---------------------------------------------------------------- blind
 
 
-class BlindRunRequest(BaseModel):
+class BlindLeakRunRequest(BaseModel):
     trial_id: str
     view: Role = "coordinator"
 
@@ -185,7 +185,7 @@ class Leak(BaseModel):
     importance: float
 
 
-class BlindResultModel(Response):
+class BlindLeakResultModel(Response):
     trial_id: str
     view: Role
     remedies: list[Remedy] = Field(default_factory=list)
@@ -197,7 +197,7 @@ class BlindResultModel(Response):
     top_leaks: list[Leak]
 
 
-class MinimumFixRequest(BaseModel):
+class CheapestFixRequest(BaseModel):
     trial_id: str
     utility_floor: float = 0.90
     auc_ceiling: float = 0.55
@@ -211,7 +211,7 @@ class RemedyCombo(BaseModel):
     safety_ok: bool
 
 
-class MinimumFixResult(Response):
+class CheapestFixResult(Response):
     trial_id: str
     utility_floor: float
     auc_ceiling: float
@@ -252,25 +252,25 @@ class GuessScore(Response):
     cards: list[GuessCardResult]
 
 
-# ---------------------------------------------------------------- margin / report
+# ---------------------------------------------------------------- breaking point / report
 
 
-class MarginRequest(BaseModel):
+class BreakingPointRequest(BaseModel):
     trial_id: str
-    detector_version: int = 0
+    suite_version: int = 0
     max_k: int = 6
 
 
-class MarginPoint(BaseModel):
+class BreakingPointRow(BaseModel):
     k: int
     effect: float
     p: float
 
 
-class MarginResult(Response):
+class BreakingPointResult(Response):
     trial_id: str
-    detector_version: int
-    curve: list[MarginPoint]
+    suite_version: int
+    curve: list[BreakingPointRow]
     break_k: int | None
 
 
@@ -284,6 +284,6 @@ class Report(Response):
     trial_id: str
     contract: list[ContractProperty]
     headlines: list[Headline]
-    margin_v0: MarginResult
-    margin_vN: MarginResult
+    breaking_point_v0: BreakingPointResult
+    breaking_point_vN: BreakingPointResult
     fixes: list[str]

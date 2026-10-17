@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from engine.detector.base import SiteData
-from engine.generator.trial import Trial
+from engine.fraud_checks.base import SiteData
+from engine.simulator.trial import Trial
 
 OWNER = "Garv"
 

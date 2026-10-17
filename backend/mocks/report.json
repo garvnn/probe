@@ -5,7 +5,7 @@
     {
       "name": "data_authenticity",
       "status": "broken",
-      "counterexample": "Simulated fake site accepted as authentic (round 5, detector v0)"
+      "counterexample": "Simulated fake site accepted as authentic (round 5, check suite v0)"
     },
     {
       "name": "treatment_confidentiality",
@@ -30,7 +30,7 @@
   ],
   "headlines": [
     {
-      "label": "Held-out evasion (attacker B)",
+      "label": "Test-attacker evasion",
       "before": "12 / 20",
       "after": "2 / 20"
     },
@@ -45,10 +45,10 @@
       "after": "> 6"
     }
   ],
-  "margin_v0": {
+  "breaking_point_v0": {
     "_mock": true,
     "trial_id": "tr_2026_B",
-    "detector_version": 0,
+    "suite_version": 0,
     "curve": [
       {
         "k": 0,
@@ -88,10 +88,10 @@
     ],
     "break_k": 3
   },
-  "margin_vN": {
+  "breaking_point_vN": {
     "_mock": true,
     "trial_id": "tr_2026_B",
-    "detector_version": 1,
+    "suite_version": 1,
     "curve": [
       {
         "k": 0,
@@ -132,7 +132,7 @@
     "break_k": null
   },
   "fixes": [
-    "New detector check mock_droid_check (accepted, false alarms 4.8% -> 5.1%)",
+    "New fraud check mock_droid_check (accepted, false alarms 4.8% -> 5.1%)",
     "Remedies: unblinded_pharmacist, sham_titration, central_lab"
   ]
 }

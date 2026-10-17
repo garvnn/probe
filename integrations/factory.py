@@ -10,7 +10,7 @@ OWNER = "Shreyas"
 
 class DroidClient(Protocol):
     def write_check(self, task: dict) -> str:
-        """Submit a task (see engine.harden.droid_task) and return the proposed check's Python source."""
+        """Submit a task (see engine.patch.droid_task) and return the proposed check's Python source."""
         ...
 
 

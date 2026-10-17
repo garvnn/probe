@@ -26,7 +26,7 @@ def test_import(name: str) -> None:
 
 
 def test_stub_names_owner() -> None:
-    from engine.generator.trial import TrialConfig, generate_trial
+    from engine.simulator.trial import TrialConfig, generate_trial
 
     with pytest.raises(NotImplementedError, match="owner: Garv"):
         generate_trial(TrialConfig(scenario="B"))

@@ -1,4 +1,4 @@
-"""Sandboxed execution for all LLM-written code (attacker generators, Droid checks). Owner: Shreyas.
+"""Sandboxed execution for all LLM-written code (attacker fake-site code, Droid checks). Owner: Shreyas.
 
 Rule: no LLM-written code ever runs on a laptop. Every execution goes through a SandboxRunner.
 """

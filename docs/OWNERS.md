@@ -4,16 +4,18 @@ One owner per module. Every stub raises `NotImplementedError("owner: <name>")` s
 
 | Person | Role | Owns |
 |---|---|---|
-| **Garv** | Data | `engine/generator/`, `engine/analysis/`, `engine/detector/` (base, detector, calibrate, `checks_core.py`), `evals/ground_truth.py`, `scripts/download_nhanes.py`, `docs/schema.md`, `docs/assumptions.md` |
-| **Shreyas** | Forger | `engine/forger/`, `engine/harden/gate.py`, `engine/harden/droid_task.py`, `integrations/daytona.py`, `integrations/factory.py`, `integrations/llm.py`, `scripts/precompute_demo.py` |
-| **Ajay** | Blind Breaker + evals | `engine/blind/`, `engine/detector/checks_rates.py`, `engine/harden/fallback_check.py`, `integrations/chalk.py`, `evals/` (metrics, scenarios, export), `scripts/run_full_eval.py` |
+| **Garv** | Data | `engine/simulator/`, `engine/analysis/`, `engine/fraud_checks/` (base, suite, calibrate, `checks_core.py`), `evals/ground_truth.py`, `scripts/download_nhanes.py`, `docs/schema.md`, `docs/assumptions.md` |
+| **Shreyas** | Fake data | `engine/fake_data/`, `engine/patch/gate.py`, `engine/patch/droid_task.py`, `integrations/daytona.py`, `integrations/factory.py`, `integrations/llm.py`, `scripts/precompute_demo.py` |
+| **Ajay** | Blind leak + evals | `engine/blind_leak/`, `engine/fraud_checks/checks_rates.py`, `engine/patch/fallback_check.py`, `integrations/chalk.py`, `evals/` (metrics, scenarios, export), `scripts/run_full_eval.py` |
 | **Akarsh** | Frontend + pitch | `frontend/`, Guess Who, report page, demo script, Devpost |
 
 `backend/` (routes, mocks, state) is shared: whoever adds or changes an endpoint updates its Pydantic model and its fixture in `backend/mocks/`.
 
+Branches: `data/*`, `fake_data/*`, `blind/*`, `ui/*`. `main` is always demoable.
+
 ## Rules
 
-- **Bias firewall:** Ajay never opens `engine/generator/`. He works only from `docs/schema.md` and `export_view(...)` output.
+- **Bias firewall:** Ajay never opens `engine/simulator/`. They work only from `docs/schema.md` and `export_view(...)` output.
 - **Ground truth:** only `evals/` and scoring code import `evals/ground_truth.py`.
-- **Attacker B:** nobody touches `engine/forger/prompts/attacker_b.md` or runs attacker B until hardening is frozen.
+- **Test attacker:** nobody touches `engine/fake_data/prompts/test_attacker.md` or runs the test attacker until patching is frozen.
 - **No LLM-written code on a laptop:** attacker and Droid code runs only through a `SandboxRunner`.

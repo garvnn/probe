@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.config import demo_mode
-from backend.routes import blind, contract, detector, forger, heldout, margin, report, trials
+from backend.routes import blind_leak, breaking_point, contract, fake_data, fraud_checks, report, test_attacker, trials
 
 app = FastAPI(title="Probe", description="Penetration testing for clinical trials.")
 
@@ -31,5 +31,5 @@ def health() -> dict:
     return {"status": "ok", "demo_mode": demo_mode()}
 
 
-for module in (trials, forger, detector, heldout, blind, contract, margin, report):
+for module in (trials, fake_data, fraud_checks, test_attacker, blind_leak, contract, breaking_point, report):
     app.include_router(module.router)

@@ -16,16 +16,16 @@ CASES: list[tuple[str, str, dict | None]] = [
     ("GET", "/health", None),
     ("POST", "/trials", {"scenario": "B"}),
     ("GET", f"/trials/{TID}", None),
-    ("POST", "/forger/runs", {"trial_id": TID}),
-    ("POST", "/detector/harden", {"trial_id": TID, "run_id": "fr_01"}),
-    ("POST", "/heldout/eval", {"trial_id": TID, "detector_versions": [0, 1]}),
-    ("POST", "/blind/runs", {"trial_id": TID}),
-    ("POST", "/blind/policy", {"trial_id": TID, "remedies": ["central_lab"]}),
-    ("POST", "/blind/minimum-fix", {"trial_id": TID}),
-    ("GET", "/blind/guess-cards", None),
-    ("POST", "/blind/guess-cards/score", {"trial_id": TID, "guesses": {"C1": "drug", "C2": "drug"}}),
+    ("POST", "/fake-data/runs", {"trial_id": TID}),
+    ("POST", "/fraud-checks/patch", {"trial_id": TID, "run_id": "fr_01"}),
+    ("POST", "/test-attacker/eval", {"trial_id": TID, "suite_versions": [0, 1]}),
+    ("POST", "/blind-leak/runs", {"trial_id": TID}),
+    ("POST", "/blind-leak/policy", {"trial_id": TID, "remedies": ["central_lab"]}),
+    ("POST", "/blind-leak/cheapest-fix", {"trial_id": TID}),
+    ("GET", "/blind-leak/guess-cards", None),
+    ("POST", "/blind-leak/guess-cards/score", {"trial_id": TID, "guesses": {"C1": "drug", "C2": "drug"}}),
     ("GET", "/contract/demo", None),
-    ("POST", "/margin", {"trial_id": TID}),
+    ("POST", "/breaking-point", {"trial_id": TID}),
     ("GET", f"/report/{TID}", None),
 ]
 
@@ -51,13 +51,13 @@ def test_route_returns_mock(client: TestClient, method: str, path: str, body: di
 
 def test_every_route_is_covered() -> None:
     tested = {(m, p.replace(TID, "{trial_id}").replace("/demo", "/{trial_id}")) for m, p, _ in CASES}
-    tested.add(("GET", "/forger/runs/{run_id}/stream"))
+    tested.add(("GET", "/fake-data/runs/{run_id}/stream"))
     routes = {(m, r.path) for r in app.routes if isinstance(r, APIRoute) for m in r.methods}
     assert routes <= tested, f"untested routes: {routes - tested}"
 
 
-def test_forger_stream(client: TestClient) -> None:
-    with client.stream("GET", "/forger/runs/fr_01/stream") as r:
+def test_fake_data_stream(client: TestClient) -> None:
+    with client.stream("GET", "/fake-data/runs/fr_01/stream") as r:
         assert r.status_code == 200
         body = "".join(r.iter_text())
     events, current = [], None
@@ -89,14 +89,14 @@ def test_contract_defaults_untested(client: TestClient) -> None:
     assert all(p["counterexample"] for p in mixed if p["status"] == "broken")
 
 
-def test_minimum_fix_has_all_combos(client: TestClient) -> None:
-    data = client.post("/blind/minimum-fix", json={"trial_id": TID}).json()
+def test_cheapest_fix_has_all_combos(client: TestClient) -> None:
+    data = client.post("/blind-leak/cheapest-fix", json={"trial_id": TID}).json()
     assert len(data["results"]) == 16
     assert data["recommended"] in data["results"]
 
 
 def test_guess_cards_have_no_labels(client: TestClient) -> None:
-    text = client.get("/blind/guess-cards").text
+    text = client.get("/blind-leak/guess-cards").text
     assert "truth" not in text and "arm" not in json.loads(text)["cards"][0]["visible"]
 
 

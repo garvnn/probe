@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from engine.generator.trial import TrialConfig
+from engine.simulator.trial import TrialConfig
 
 OWNER = "Ajay"
 
@@ -10,7 +10,7 @@ SCENARIOS = (
     "A_mechanisms_on",   # drug works, leaks present
     "B_mechanisms_on",   # useless drug, damage test
     "strength_sweep",    # weak / medium / strong nausea effect
-    "control_off",       # mechanisms off: Blind Breaker must be at chance
+    "control_off",       # mechanisms off: blind-leak attack must be at chance
 )
 
 

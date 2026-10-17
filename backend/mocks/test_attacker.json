@@ -1,0 +1,31 @@
+{
+  "_mock": true,
+  "attacker_id": "test",
+  "never_seen_during_patching": true,
+  "rows": [
+    {
+      "suite_version": 0,
+      "attacker_id": "test",
+      "attempted": 20,
+      "escaped": 12,
+      "evasion_rate": 0.6,
+      "ci95": [
+        0.39,
+        0.78
+      ],
+      "fp_rate": 0.048
+    },
+    {
+      "suite_version": 1,
+      "attacker_id": "test",
+      "attempted": 20,
+      "escaped": 2,
+      "evasion_rate": 0.1,
+      "ci95": [
+        0.03,
+        0.3
+      ],
+      "fp_rate": 0.051
+    }
+  ]
+}

@@ -10,7 +10,7 @@ OWNER = "Ajay"
 
 class MetricSink(Protocol):
     def log(self, name: str, value: float, context: dict) -> None:
-        """Record one eval metric with its context (trial_id, detector_version, attacker_id, seed, ...)."""
+        """Record one eval metric with its context (trial_id, suite_version, attacker_id, seed, ...)."""
         ...
 
 

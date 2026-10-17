@@ -34,7 +34,7 @@ class OpenAILLM:
         raise NotImplementedError(f"owner: {OWNER}")
 
 
-CANNED_GENERATOR_SOURCE = '''\
+CANNED_FAKE_SITE_SOURCE = '''\
 def generate_site(context):
     """Mock attacker output for wiring. Never executed outside a sandbox."""
     return {"patients": [], "visits": [], "labs": [], "vitals": [],
@@ -43,7 +43,7 @@ def generate_site(context):
 
 
 class LocalMockLLM:
-    """Returns a canned generator source."""
+    """Returns a canned fake-site source."""
 
     def complete(self, model: str, system: str, messages: list[dict], seed: int | None = None) -> str:
-        return CANNED_GENERATOR_SOURCE
+        return CANNED_FAKE_SITE_SOURCE

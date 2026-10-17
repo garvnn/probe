@@ -1,4 +1,4 @@
-"""Download the NHANES files the generator needs into data/raw/. Owner: Garv.
+"""Download the NHANES files the simulator needs into data/raw/. Owner: Garv.
 
 Files: DEMO, GHB, GLU, BMX, BPX/BPXO for one recent cycle. Exact file names change between
 cycles; verify them before relying on this script.

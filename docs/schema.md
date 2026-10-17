@@ -1,6 +1,6 @@
 # Trial schema
 
-Owner: Garv. This file is the contract between the generator and everyone else; Ajay builds the Blind Breaker from this file only.
+Owner: Garv. This file is the contract between the simulator and everyone else; Ajay builds the blind-leak attack from this file only.
 
 Conventions: IDs are strings (`P0412`, `S07`, `V0412-W08`), dates are ISO `YYYY-MM-DD`, units are noted per column.
 
@@ -22,7 +22,7 @@ Conventions: IDs are strings (`P0412`, `S07`, `V0412-W08`), dates are ISO `YYYY-
 | site_id | str | | TODO |
 | trial_id | str | | TODO |
 | is_fake | bool | | Evals only. Never exported in a view. |
-| source | str | | `generator` \| `forger:A` \| `forger:B` |
+| source | str | | `simulator` \| `fake_data:training` \| `fake_data:test` |
 
 ## visits
 

@@ -1,6 +1,6 @@
 # Assumptions
 
-Owner: Garv. Every leak mechanism in the generator gets one row. No mechanism ships without a "why realistic" and a source. Strengths are config knobs; results are shown across a range, not one tuned value.
+Owner: Garv. Every leak mechanism in the simulator gets one row. No mechanism ships without a "why realistic" and a source. Strengths are config knobs; results are shown across a range, not one tuned value.
 
 | Mechanism | Strength param | Default | Why realistic | Source |
 |---|---|---|---|---|
@@ -15,4 +15,4 @@ Owner: Garv. Every leak mechanism in the generator gets one row. No mechanism sh
 |---|---|---|
 | Scenario A effect | TODO | |
 | Scenario B effect | TODO | Equal to placebo |
-| Detector false-alarm budget | ≤5% of real sites | Frozen before any attack runs |
+| Check-suite false-alarm budget | ≤5% of real sites | Frozen before any attack runs |

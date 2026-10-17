@@ -4,7 +4,7 @@
 
 Probe attacks a clinical trial before a real attacker or a real accident does. Then it proves the fix works on an attack it has never seen.
 
-> **Probe never touches, alters, or "fixes" patient data.** It hardens the *monitoring system* and the *information boundary*. It tests detectors and access policies, not records.
+> **Probe never touches, alters, or "fixes" patient data.** It patches the *monitoring system* and the *information boundary*. It tests fraud checks and access policies, not records.
 
 Built at HackHarvard 2026 for the Regeneron track (Reinvent Clinical Trials), with Daytona, Chalk, and Factory.
 
@@ -16,9 +16,9 @@ Every randomized trial makes promises it has to keep. Probe writes them down as 
 
 | Property | Rule | Tested by |
 |---|---|---|
-| **Data authenticity** | Fabricated site data must not be accepted as authentic | Data Forger |
-| **Treatment confidentiality** | Coordinator- and assessor-visible data must not predict who got the real drug | Blind Breaker |
-| **Statistical integrity** | Undetected integrity failures must not materially change the trial's conclusion | Damage + integrity-margin analysis |
+| **Data authenticity** | Fabricated site data must not be accepted as authentic | Impostor |
+| **Treatment confidentiality** | Coordinator- and assessor-visible data must not predict who got the real drug | Tell |
+| **Statistical integrity** | Undetected integrity failures must not materially change the trial's conclusion | Damage + Breaking Point analysis |
 | **Safety accessibility** | Required safety information stays visible to the people who need it | Constraint on every fix |
 | **Operational utility** | Defenses must keep required site tasks possible | Constraint on every fix |
 
@@ -33,23 +33,40 @@ Every trial relies on two assumptions, and both are usually checked after the fa
 
 Probe attacks both before the first patient is enrolled, the same way a bank hires pentesters before real attackers show up.
 
+## Names
+
+The pitch uses short names; the code uses names that say what each piece does.
+
+| Pitch name | Code |
+|---|---|
+| Trial Twin | `engine/simulator` |
+| Sentinel | `engine/fraud_checks` |
+| Impostor | `engine/fake_data` |
+| Tell | `engine/blind_leak` (attack) |
+| Seal | `engine/blind_leak/cheapest_fix.py` |
+| Sparring | training attacker |
+| Stranger | test attacker |
+| Patch | `engine/patch` |
+| Breaking Point | `engine/analysis/breaking_point.py` |
+| Guess Who, Integrity Contract, Probe Report | unchanged |
+
 ## The two attack heads
 
-### Data Forger (the main attack)
+### Impostor: fake data (the main attack)
 
 1. An LLM attacker writes Python that fabricates an entire trial site.
 2. That code runs in a **Daytona** sandbox. No LLM-written code ever runs on a laptop.
-3. The fraud detector scores the fake site. The attacker sees which checks fired and rewrites its code. This repeats for several rounds.
-4. Every fake that escapes becomes a counterexample. **Factory Droid** acts as the defender and writes a new detector check. The check ships only if false alarms on real sites stay flat.
-5. A **brand-new attacker B** (different model, prompt, and seed, never used during hardening) attacks the hardened detector. We report evasion before and after hardening against attacker B.
+3. Sentinel, the fraud-check suite, scores the fake site. The attacker sees which checks fired and rewrites its code. This repeats for several rounds.
+4. Every fake that escapes becomes a counterexample. **Factory Droid** acts as the defender and writes a new fraud check (the Patch). The check ships only if false alarms on real sites stay flat.
+5. A **brand-new test attacker** (Stranger: different model, prompt, and seed, never seen during patching) attacks the patched check suite. We report evasion before and after patching against the test attacker. The training attacker (Sparring) is the one used for patching.
 6. **Damage:** how far the undetected fakes move the trial's treatment effect, and whether a drug with zero true effect could be made to look significant.
-7. **Integrity margin:** how many undetected fake sites it takes to flip the trial's conclusion, before vs after hardening.
+7. **Breaking Point:** how many undetected fake sites it takes to flip the trial's conclusion, before vs after patching.
 
-### Blind Breaker
+### Tell: blind leak
 
 1. A classifier sees **only** the site coordinator's view of the data and predicts each patient's treatment arm. It is cross-validated by site and compared against a permutation null.
 2. SHAP and drop-column attribution name the fields that leak the arm.
-3. Each leaking field maps to a real-world remedy: an unblinded pharmacist, routing efficacy labs through a central lab, sham titration in the placebo arm, or matched kits. Probe brute-forces every combination and picks the **cheapest** one that brings accuracy back to chance while operational tasks stay supported.
+3. Each leaking field maps to a real-world remedy: an unblinded pharmacist, routing efficacy labs through a central lab, sham titration in the placebo arm, or matched kits. Probe brute-forces every combination and picks the **cheapest** one (the Seal) that brings accuracy back to chance while operational tasks stay supported.
 4. Adverse events are never hidden. When the leak comes from safety data, the remedy is a separate blinded outcome assessor.
 
 > **We use AI where an attacker would.** Everything that judges the attack (the statistical checks, the classifier, the primary analysis, every metric) is plain, deterministic statistics you can audit.
@@ -63,7 +80,7 @@ Probe attacks both before the first patient is enrolled, the same way a bank hir
 
 ---
 
-## The simulated trial
+## The simulated trial (Trial Twin)
 
 The fictional drug **PRB-101** treats type 2 diabetes. The primary endpoint is the change in HbA1c from baseline to week 24. All effect sizes are simulation parameters we chose, not claims about any real drug.
 
@@ -83,11 +100,11 @@ NHANES adults with diabetes-range HbA1c        (real, public physiology)
 
 - **Scenario A:** the drug works (−0.6 HbA1c vs −0.1 on placebo).
 - **Scenario B:** the drug is useless (its effect equals placebo). This is the scenario for the damage demo.
-- **Control:** with all mechanisms turned off, the Blind Breaker must score at chance. If it doesn't, that's a bug, not a finding.
+- **Control:** with all mechanisms turned off, the blind-leak attack must score at chance. If it doesn't, that's a bug, not a finding.
 
-**Bias firewall:** whoever builds the Blind Breaker never reads the generator code. They see only `docs/schema.md` and the exported views. Every leak mechanism and its strength is documented in `docs/assumptions.md`, and mechanism strengths are configurable so results can be shown across a range of settings.
+**Bias firewall:** whoever builds the blind-leak attack never reads the simulator code. They see only `docs/schema.md` and the exported views. Every leak mechanism and its strength is documented in `docs/assumptions.md`, and mechanism strengths are configurable so results can be shown across a range of settings.
 
-### Detector v0 (published central-statistical-monitoring methods)
+### Sentinel v0: fraud checks (published central-statistical-monitoring methods)
 
 | Check | What it catches |
 |---|---|
@@ -99,27 +116,27 @@ NHANES adults with diabetes-range HbA1c        (real, public physiology)
 | AE under-reporting | Fakers forgetting side effects |
 | Missingness | Fakes with no missing data |
 
-The detection threshold is calibrated so that no more than 5% of real sites get flagged, and it is frozen before any attack runs.
+The check-suite threshold is calibrated so that no more than 5% of real sites get flagged, and it is frozen before any attack runs.
 
 ---
 
 ## Evaluation
 
-**Primary metric:** held-out evasion rate. This is the fraction of attacker B's fake sites that escape detection, measured for detector v0 and for the hardened detector vN at the same false-alarm budget.
+**Primary metric:** test-attacker evasion rate. This is the fraction of the test attacker's fake sites that escape detection, measured for check suite v0 and for the patched suite vN at the same false-alarm budget.
 
 | Metric | Target direction |
 |---|---|
-| `fraud_evasion_rate` (attacker A) | down after hardening |
-| `generalization_to_held_out_attack` (attacker B) | down after hardening (**the main claim**) |
+| `fraud_evasion_rate` (training attacker) | down after patching |
+| `generalization_to_held_out_attack` (test attacker) | down after patching (**the main claim**) |
 | `legitimate_false_positive_rate` | flat (≤ +1 pt) |
 | `damage_effect_shift` | reported honestly |
 | `unblinding_accuracy` / AUC | well above 50% before, ≈50% after |
 | `permutation_null` | shows that "above chance" is real |
 | `operational_utility_retained` | high |
-| `integrity_margin` | higher after hardening |
-| `minimum_fix_cost` | reported, labeled as an assigned cost |
+| `breaking_point` | higher after patching |
+| `cheapest_fix_cost` | reported, labeled as an assigned cost |
 
-Evasion is reported as counts with Wilson 95% intervals. Blind accuracy uses cross-validation grouped by site, with a permutation p-value. **No number appears in this repo, the demo, or the pitch until it has been measured.** All metrics are logged to **Chalk**.
+Evasion is reported as counts with Wilson 95% intervals. Blind-leak accuracy uses cross-validation grouped by site, with a permutation p-value. **No number appears in this repo, the demo, or the pitch until it has been measured.** All metrics are logged to **Chalk**.
 
 ---
 
@@ -127,14 +144,14 @@ Evasion is reported as counts with Wilson 95% intervals. Blind accuracy uses cro
 
 ```
 ┌──────────────── Frontend (Next.js · Tailwind · Recharts) ────────────────┐
-│   Setup + Contract · Forger Live · Harden + Held-Out · Blind · Report    │
+│   Setup + Contract · Impostor Live · Patch + Stranger · Tell · Report    │
 └────────────────────────────────┬─────────────────────────────────────────┘
                                  │ REST + SSE
 ┌────────────────────────────────▼──────── Backend (FastAPI) ──────────────┐
 └───┬─────────────┬──────────────────┬───────────────────┬─────────────────┘
 ┌───▼──────┐ ┌────▼─────┐   ┌────────▼─────────┐   ┌─────▼──────┐
-│generator │ │  forger  │   │ detector + harden│   │   blind    │
-│ (NHANES) │ │   loop   │   │  (Factory Droid) │   │  breaker   │
+│simulator │ │fake_data │   │fraud_checks+patch│   │ blind_leak │
+│ (NHANES) │ │   loop   │   │  (Factory Droid) │   │            │
 └───┬──────┘ └────┬─────┘   └────────┬─────────┘   └─────┬──────┘
     │             └── Daytona sandboxes (all LLM-written code) ──┘
     ▼                                                    ▼
@@ -153,7 +170,7 @@ Evasion is reported as counts with Wilson 95% intervals. Blind accuracy uses cro
 | Data / stats | pandas, NumPy, SciPy, statsmodels | n/a |
 | ML / attribution | LightGBM, SHAP | sklearn, drop-column only |
 | Storage | SQLite | Parquet |
-| LLM attackers | Claude / GPT (attacker A and B on different models) | Same model with a different prompt and seed |
+| LLM attackers | Claude / GPT (training and test attackers on different models) | Same model with a different prompt and seed |
 | Sandbox | Daytona | Local Docker |
 | Evals | Chalk | Local metrics table |
 | Defender agent | Factory Droid | Fallback classifier check |
@@ -166,17 +183,17 @@ probe/
 ├── frontend/       Next.js app: 5 screens, charts, SSE client
 ├── backend/        FastAPI: routes, run state, background tasks, SSE
 ├── engine/
-│   ├── generator/  NHANES load, trial builder, mechanisms, ground truth
-│   ├── detector/   SiteCheck base, check battery, calibration, versions
-│   ├── forger/     attacker prompts, loop, schema validation
-│   ├── harden/     Droid task builder, acceptance gate, fallback check
-│   ├── blind/      views, classifier, permutation, SHAP, remedies, utility
-│   └── analysis/   ANCOVA primary analysis, damage metric
+│   ├── simulator/     NHANES load, trial builder, mechanisms, views
+│   ├── fraud_checks/  SiteCheck base, check suite, calibration, versions
+│   ├── fake_data/     training + test attacker prompts, loop, schema validation
+│   ├── patch/         Droid task builder, acceptance gate, fallback check
+│   ├── blind_leak/    classifier, permutation, SHAP, remedies, utility, cheapest fix
+│   └── analysis/      ANCOVA primary analysis, damage, breaking point
 ├── integrations/   daytona.py, chalk.py, factory.py (thin, mockable)
 ├── evals/          metric definitions, scenario suite, results export
 ├── scripts/        download_nhanes.py, precompute_demo.py, run_full_eval.py
 ├── data/           raw NHANES (gitignored), processed parquet, demo cache
-├── tests/          generator sanity, mechanisms-off control, schema tests
+├── tests/          imports, every route in mock mode, mechanisms-off control
 └── docs/           schema.md, assumptions.md, pitch notes
 ```
 
@@ -197,8 +214,8 @@ make mock    # API serving fixtures only (DEMO_MODE=mock), for frontend work
 
 ```
 ANTHROPIC_API_KEY=        # or OPENAI_API_KEY
-ATTACKER_A_MODEL=
-ATTACKER_B_MODEL=
+TRAINING_ATTACKER_MODEL=
+TEST_ATTACKER_MODEL=
 DAYTONA_API_KEY=
 CHALK_CLIENT_ID=
 CHALK_CLIENT_SECRET=
@@ -214,12 +231,12 @@ DB_PATH=data/probe.db
 
 | Person | Owns |
 |---|---|
-| **Garv** (Data) | Generator, NHANES pipeline, `schema.md`, `assumptions.md`, detector core (base, calibration, core checks), ground truth, primary analysis, damage, integrity margin |
-| **Shreyas** (Forger) | Attacker prompts, forger loop, acceptance gate, Droid task, Daytona, Factory, LLM integrations, demo precompute |
-| **Ajay** (Blind Breaker + evals) | Blind Breaker (features, classifier, permutation, SHAP, remedies, utility, minimum fix), rate checks, fallback check, Chalk, evals |
+| **Garv** (Data) | Simulator, NHANES pipeline, `schema.md`, `assumptions.md`, fraud-check core (base, suite, calibration, core checks), ground truth, primary analysis, damage, breaking point |
+| **Shreyas** (Fake data) | Training + test attacker prompts, fake-data loop, acceptance gate, Droid task, Daytona, Factory, LLM integrations, demo precompute |
+| **Ajay** (Blind leak + evals) | Blind leak (features, classifier, permutation, SHAP, remedies, utility, cheapest fix), rate checks, fallback check, Chalk, evals |
 | **Akarsh** (Frontend + pitch) | Next.js frontend, Guess Who, report page, demo script, Devpost |
 
-`main` should always be in a demoable state. Branch names: `data/*`, `forger/*`, `blind/*`, `ui/*`.
+`main` should always be in a demoable state. Branch names: `data/*`, `fake_data/*`, `blind/*`, `ui/*`.
 
 ## Responsible use
 

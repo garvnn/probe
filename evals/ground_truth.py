@@ -1,7 +1,7 @@
 """Locked ground truth. Owner: Garv.
 
-Only evals and scoring code may import this. Never import it from engine.blind, engine.forger,
-engine.generator.views, or backend routes.
+Only evals and scoring code may import this. Never import it from engine.blind_leak, engine.fake_data,
+engine.simulator.views, or backend routes.
 """
 
 from __future__ import annotations

@@ -1,4 +1,4 @@
-"""In-memory run registry for live mode (forger runs, held-out evals, blind runs). Owner: Shreyas."""
+"""In-memory run registry for live mode (fake-data runs, test-attacker evals, blind-leak runs). Owner: Shreyas."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ OWNER = "Shreyas"
 class RunRecord:
     run_id: str
     kind: str
-    """"forger" | "heldout" | "blind"."""
+    """"fake_data" | "test_attacker" | "blind_leak"."""
     status: str = "queued"
     events: list[dict] = field(default_factory=list)
 

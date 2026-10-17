@@ -16,8 +16,8 @@ METRICS = (
     "unblinding_auc",
     "permutation_null",
     "operational_utility_retained",
-    "integrity_margin",
-    "minimum_fix_cost",
+    "breaking_point",
+    "cheapest_fix_cost",
 )
 
 
