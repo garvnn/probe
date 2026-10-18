@@ -3,12 +3,11 @@
 The Chalk client is replaced by a fake that runs the same resolver function Chalk would
 (tell_chalk.vector.vector_json) on the same JSON inputs, so these tests check everything except
 Chalk's servers: the per-patient/cross-patient split, the JSON round trip, the client plumbing,
-the local fallback, and that .chalkignore uploads only the feature code.
+the local fallback, and that chalk_project/ is exactly the 9-file deploy unit, in sync with the repo.
 """
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pandas as pd
@@ -114,24 +113,33 @@ def test_assemble_applies_min_support_across_patients() -> None:
     assert "conmeds__rare_n" in assemble(five_have_it, {p: "S01" for p in five_have_it}).columns
 
 
-def test_chalkignore_uploads_only_the_feature_code() -> None:
-    pathspec = pytest.importorskip("pathspec")
+CHALK_PROJECT_FILES = {
+    "chalk.yaml": None,
+    "chalk_requirements.txt": None,
+    "engine/__init__.py": None,
+    "engine/blind_leak/__init__.py": "engine/blind_leak/__init__.py",
+    "engine/blind_leak/contract.py": "engine/blind_leak/contract.py",
+    "engine/blind_leak/features.py": "engine/blind_leak/features.py",
+    "tell_chalk/__init__.py": "tell_chalk/__init__.py",
+    "tell_chalk/features.py": "tell_chalk/features.py",
+    "tell_chalk/vector.py": "tell_chalk/vector.py",
+}
+"""chalk_project/ is the deploy unit: these 9 files and nothing else. Code files are copies of the repo's."""
+
+
+def test_chalk_project_is_exactly_the_nine_files_and_in_sync() -> None:
     root = Path(__file__).resolve().parents[1]
-    lines = (root / ".gitignore").read_text().splitlines() + (root / ".chalkignore").read_text().splitlines()
-    spec = pathspec.GitIgnoreSpec.from_lines(lines)
-    files = []
-    for dp, dn, fn in os.walk(root):
-        dn[:] = [d for d in dn if d not in (".git", ".venv", "node_modules")]
-        files += [os.path.relpath(os.path.join(dp, f), root) for f in fn]
-    uploaded = {f for f in files if not spec.match_file(f) and "__pycache__" not in f}
-    assert uploaded == {
-        "chalk.yaml",
-        "chalk_requirements.txt",
-        "engine/__init__.py",
-        "engine/blind_leak/__init__.py",
-        "engine/blind_leak/contract.py",
-        "engine/blind_leak/features.py",
-        "tell_chalk/__init__.py",
-        "tell_chalk/features.py",
-        "tell_chalk/vector.py",
-    }
+    project = root / "chalk_project"
+    files = {str(p.relative_to(project)) for p in project.rglob("*") if p.is_file() and "__pycache__" not in p.parts}
+    assert files == set(CHALK_PROJECT_FILES), "chalk_project/ must contain exactly the files Chalk needs"
+    for copy, source in CHALK_PROJECT_FILES.items():
+        if source:
+            assert (project / copy).read_bytes() == (root / source).read_bytes(), f"chalk_project/{copy} is out of date; re-copy {source}"
+    reqs = (project / "chalk_requirements.txt").read_text()
+    assert "pandas==2.3.3" in reqs and "numpy==2.4.6" in reqs
+
+
+def test_no_repo_root_chalk_config() -> None:
+    """A chalk.yaml at the repo root would let `chalk apply` upload the whole repository."""
+    root = Path(__file__).resolve().parents[1]
+    assert not (root / "chalk.yaml").exists() and not (root / ".chalkignore").exists()
