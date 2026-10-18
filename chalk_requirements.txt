@@ -1,4 +1,5 @@
-# Only what Tell's Chalk resolvers import. Pinned to the local versions so values match bit for bit.
+# Only what Tell's Chalk resolvers import. Chalk's runtime needs pandas<3; pandas 2.3.3 was checked bit-exact
+# against build_features under the project's pandas 3.0.6 on tr_2026_B and tr_2026_B_off (all columns).
 chalkpy[runtime]
-pandas==3.0.6
+pandas==2.3.3
 numpy==2.4.6
