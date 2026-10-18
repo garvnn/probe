@@ -47,6 +47,7 @@ export const api = {
   // `fixture` is mock-only: 'mixed' returns a post-run contract with held/broken properties.
   getContract: (id: string, fixture?: 'untested' | 'mixed') => get('/contract/{trial_id}',`/contract/${q(id)}${fixture ? `?fixture=${q(fixture)}` : ''}`),
   startFakeData: (id: string) => post('/fake-data/runs', { trial_id: id, attacker_id: 'training', suite_version: 0 }),
+  getFakeDataRun: (runId: string) => get('/fake-data/runs/{run_id}',`/fake-data/runs/${q(runId)}`),
   fakeDataStreamUrl: (runId: string) => `${BASE}/fake-data/runs/${q(runId)}/stream`,
   patch: (id: string, runId: string, suiteVersion = 0) => post('/fraud-checks/patch', { trial_id: id, run_id: runId, suite_version: suiteVersion }),
   testAttacker: (id: string, suiteVersions: number[]) => post('/test-attacker/eval', { trial_id: id, attacker_id: 'test', suite_versions: suiteVersions }),

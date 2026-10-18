@@ -4,14 +4,14 @@ import { ArrowRight, FlaskConical, ShieldCheck, Database } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useDemo } from '@/lib/demo-context';
 import { contractOf } from '@/lib/adapters';
-import { asObj, pick, str, errorText } from '@/lib/utils';
+import { asObj, pick, str, isMock } from '@/lib/utils';
 import { ContractPanel } from '@/components/shared/ContractPanel';
 import { Loading, ErrorPanel, DemoDisclaimer, SectionLabel } from '@/components/shared/Primitives';
 import { RoleMatrix } from './RoleMatrix';
 export function SetupView({next}:{next?:()=>void}){
   const {scenario,setScenario,trialId,setTrialId,contract,setContract,markMock,setStep}=useDemo();
   const [trial,setTrial]=useState<unknown>(null);const[busy,setBusy]=useState(false);const[error,setError]=useState<unknown>(null);
-  const fetchTrial=useCallback(async(id:string)=>{const [t,c]=await Promise.all([api.getTrial(id),api.getContract(id)]);setTrial(t);setContract(contractOf(c));markMock(t);markMock(c)},[setContract,markMock]);
+  const fetchTrial=useCallback(async(id:string)=>{const [t,c]=await Promise.all([api.getTrial(id),api.getContract(id)]);setTrial(t);setContract(contractOf(c),isMock(c));markMock(t)},[setContract,markMock]);
   useEffect(()=>{if(!trialId)return;fetchTrial(trialId).catch(setError)},[trialId,fetchTrial]);
   const launch=async()=>{setBusy(true);setError(null);try{const created=await api.createTrial(scenario);markMock(created);const o=asObj(created);const id=str(pick(o,'trial_id','id'));if(!id)throw Error('POST /trials did not return trial_id');setTrialId(id);await fetchTrial(id);}catch(e){setError(e)}finally{setBusy(false)}};
   const go=()=>{if(next)next();else setStep(1)};

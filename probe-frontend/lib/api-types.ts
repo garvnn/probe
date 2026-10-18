@@ -81,6 +81,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fake-data/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Run
+         * @description Run header for the replay screen: attacker, suite, runner, token usage.
+         */
+        get: operations["get_run_fake_data_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fake-data/runs/{run_id}/stream": {
         parameters: {
             query?: never;
@@ -457,6 +477,29 @@ export interface components {
          * @enum {string}
          */
         ContractStatus: "untested" | "held" | "broken";
+        /**
+         * Diagnostic
+         * @description Why one check fired: what it measured on the fake site vs real sites (engine.fake_data.explain).
+         */
+        Diagnostic: {
+            /** Check */
+            check: string;
+            /** Measures */
+            measures: components["schemas"]["DiagnosticMeasure"][];
+            /** Summary */
+            summary: string;
+        };
+        /** DiagnosticMeasure */
+        DiagnosticMeasure: {
+            /** Measure */
+            measure: string;
+            /** Your Site */
+            your_site: number | null;
+            /** Real Sites Typical */
+            real_sites_typical: (number | null)[];
+            /** Position */
+            position: string;
+        };
         /** FakeDataRun */
         FakeDataRun: {
             /**
@@ -497,6 +540,47 @@ export interface components {
              * @default 8
              */
             rounds?: number;
+        };
+        /**
+         * FakeDataRunDetail
+         * @description Header of a saved fake-data run: who attacked what, with which check suite.
+         */
+        FakeDataRunDetail: {
+            /**
+             * Mock
+             * @default false
+             */
+            _mock?: boolean;
+            /** Run Id */
+            run_id: string;
+            /** Trial Id */
+            trial_id: string;
+            /** Fake Site Id */
+            fake_site_id: string | null;
+            /** Attacker Id */
+            attacker_id: string;
+            /** Attacker Kind */
+            attacker_kind: string;
+            /** Attacker Model */
+            attacker_model: string;
+            /** Attacker Seed */
+            attacker_seed: number | null;
+            /** Suite Version */
+            suite_version: number;
+            /** Threshold */
+            threshold: number;
+            /** Runner */
+            runner: string;
+            /** Rounds Planned */
+            rounds_planned: number;
+            /** Rounds Done */
+            rounds_done: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Label */
+            label: string | null;
         };
         /** GuessCard */
         GuessCard: {
@@ -670,6 +754,59 @@ export interface components {
             breaking_point_vN: components["schemas"]["BreakingPointResult"];
             /** Fixes */
             fixes: string[];
+        };
+        /** RoundDamage */
+        RoundDamage: {
+            /** Effect Real */
+            effect_real: number;
+            /** Effect With Fake */
+            effect_with_fake: number;
+            /** P With Fake */
+            p_with_fake: number;
+            /** P Real */
+            p_real?: number | null;
+        };
+        /**
+         * RoundEvent
+         * @description One SSE event per fake-data round.
+         */
+        RoundEvent: {
+            /**
+             * Mock
+             * @default false
+             */
+            _mock?: boolean;
+            /** Round */
+            round: number;
+            /** Sandbox Id */
+            sandbox_id: string;
+            /** Runtime S */
+            runtime_s: number;
+            /** Ok */
+            ok: boolean;
+            /** Scores */
+            scores: {
+                [key: string]: number;
+            } | null;
+            /** Combined */
+            combined: number | null;
+            /** Threshold */
+            threshold: number;
+            /** Escaped */
+            escaped: boolean;
+            damage: components["schemas"]["RoundDamage"] | null;
+            /** Code */
+            code?: string | null;
+            /** Fired */
+            fired?: string[];
+            /** Diagnostics */
+            diagnostics?: components["schemas"]["Diagnostic"][];
+            /** Error */
+            error?: string | null;
+            /** Attacker Model */
+            attacker_model?: string | null;
+            /** Attacker S */
+            attacker_s?: number | null;
         };
         /** TestAttackerRequest */
         TestAttackerRequest: {
@@ -932,7 +1069,7 @@ export interface operations {
             };
         };
     };
-    stream_run_fake_data_runs__run_id__stream_get: {
+    get_run_fake_data_runs__run_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -949,7 +1086,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["FakeDataRunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_run_fake_data_runs__run_id__stream_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description text/event-stream: each `round` event's data is a RoundEvent; then one `done` event. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoundEvent"];
                 };
             };
             /** @description Validation Error */

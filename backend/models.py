@@ -107,6 +107,24 @@ class RoundDamage(BaseModel):
     effect_real: float
     effect_with_fake: float
     p_with_fake: float
+    p_real: float | None = None
+
+
+class DiagnosticMeasure(BaseModel):
+    measure: str
+    your_site: float | None
+    real_sites_typical: list[float | None]
+    """[10th, 90th] percentile on real sites."""
+    position: str
+    """"below" | "above" | "within" | "not computable (...)"."""
+
+
+class Diagnostic(BaseModel):
+    """Why one check fired: what it measured on the fake site vs real sites (engine.fake_data.explain)."""
+
+    check: str
+    measures: list[DiagnosticMeasure]
+    summary: str
 
 
 class RoundEvent(Response):
@@ -121,6 +139,36 @@ class RoundEvent(Response):
     threshold: float
     escaped: bool
     damage: RoundDamage | None
+    code: str | None = None
+    """The attacker's fake-site source for this round."""
+    fired: list[str] = Field(default_factory=list)
+    """Checks at or above the threshold (what the attacker was told)."""
+    diagnostics: list[Diagnostic] = Field(default_factory=list)
+    error: str | None = None
+    attacker_model: str | None = None
+    attacker_s: float | None = None
+    """Seconds the attacker took to write the code."""
+
+
+class FakeDataRunDetail(Response):
+    """Header of a saved fake-data run: who attacked what, with which check suite."""
+
+    run_id: str
+    trial_id: str
+    fake_site_id: str | None
+    attacker_id: str
+    attacker_kind: str
+    attacker_model: str
+    attacker_seed: int | None
+    suite_version: int
+    threshold: float
+    runner: str
+    rounds_planned: int
+    rounds_done: int
+    input_tokens: int
+    output_tokens: int
+    label: str | None
+    """Set on stand-in runs ("TEMPORARY ... Not a result.")."""
 
 
 # ---------------------------------------------------------------- patch / test attacker

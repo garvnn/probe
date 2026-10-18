@@ -17,7 +17,17 @@
       "effect_real": -0.08,
       "effect_with_fake": -0.105,
       "p_with_fake": 0.4
-    }
+    },
+    "code": null,
+    "fired": [
+      "digit_pref",
+      "variance",
+      "corr_struct"
+    ],
+    "diagnostics": [],
+    "error": null,
+    "attacker_model": "mock",
+    "attacker_s": 0.0
   },
   {
     "_mock": true,
@@ -37,7 +47,16 @@
       "effect_real": -0.08,
       "effect_with_fake": -0.13,
       "p_with_fake": 0.35
-    }
+    },
+    "code": null,
+    "fired": [
+      "variance",
+      "corr_struct"
+    ],
+    "diagnostics": [],
+    "error": null,
+    "attacker_model": "mock",
+    "attacker_s": 0.0
   },
   {
     "_mock": true,
@@ -57,7 +76,15 @@
       "effect_real": -0.08,
       "effect_with_fake": -0.155,
       "p_with_fake": 0.3
-    }
+    },
+    "code": null,
+    "fired": [
+      "corr_struct"
+    ],
+    "diagnostics": [],
+    "error": null,
+    "attacker_model": "mock",
+    "attacker_s": 0.0
   },
   {
     "_mock": true,
@@ -77,7 +104,15 @@
       "effect_real": -0.08,
       "effect_with_fake": -0.18,
       "p_with_fake": 0.25
-    }
+    },
+    "code": null,
+    "fired": [
+      "corr_struct"
+    ],
+    "diagnostics": [],
+    "error": null,
+    "attacker_model": "mock",
+    "attacker_s": 0.0
   },
   {
     "_mock": true,
@@ -97,7 +132,15 @@
       "effect_real": -0.08,
       "effect_with_fake": -0.205,
       "p_with_fake": 0.2
-    }
+    },
+    "code": null,
+    "fired": [
+      "corr_struct"
+    ],
+    "diagnostics": [],
+    "error": null,
+    "attacker_model": "mock",
+    "attacker_s": 0.0
   },
   {
     "_mock": true,
@@ -117,6 +160,14 @@
       "effect_real": -0.08,
       "effect_with_fake": -0.23,
       "p_with_fake": 0.15
-    }
+    },
+    "code": null,
+    "fired": [
+      "corr_struct"
+    ],
+    "diagnostics": [],
+    "error": null,
+    "attacker_model": "mock",
+    "attacker_s": 0.0
   }
 ]

@@ -1,0 +1,18 @@
+{
+  "_mock": true,
+  "run_id": "fr_01",
+  "trial_id": "tr_2026_B",
+  "fake_site_id": "S21",
+  "attacker_id": "training",
+  "attacker_kind": "mock",
+  "attacker_model": "mock",
+  "attacker_seed": null,
+  "suite_version": 0,
+  "threshold": 2.5,
+  "runner": "mock",
+  "rounds_planned": 6,
+  "rounds_done": 6,
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "label": "Mock fixture. Not a result."
+}

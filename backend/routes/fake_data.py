@@ -9,7 +9,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from backend.config import cached_replay_speed, demo_mode, mock_stream_interval_s
 from backend.mocks import load_mock
-from backend.models import FakeDataRun, FakeDataRunCreate, RoundEvent
+from backend.models import FakeDataRun, FakeDataRunCreate, FakeDataRunDetail, RoundEvent
 from backend.routes._mode import serve
 from engine.fake_data import cache
 
@@ -31,7 +31,13 @@ def round_event(rnd: dict, not_a_result: bool) -> RoundEvent:
         combined=rnd.get("combined"),
         threshold=rnd["threshold"],
         escaped=rnd["escaped"],
-        damage={k: damage[k] for k in ("effect_real", "effect_with_fake", "p_with_fake")} if damage else None,
+        damage={k: damage.get(k) for k in ("effect_real", "effect_with_fake", "p_with_fake", "p_real")} if damage else None,
+        code=rnd.get("code"),
+        fired=rnd.get("fired") or [],
+        diagnostics=rnd.get("diagnostics") or [],
+        error=rnd.get("error"),
+        attacker_model=rnd.get("attacker_model"),
+        attacker_s=rnd.get("attacker_s"),
     )
 
 
@@ -61,7 +67,37 @@ def start_run(body: FakeDataRunCreate) -> FakeDataRun:
     return serve("fake_data_run", FakeDataRun, OWNER, trial_id=body.trial_id, attacker_id=body.attacker_id)
 
 
-@router.get("/runs/{run_id}/stream")
+@router.get("/runs/{run_id}", response_model=FakeDataRunDetail)
+def get_run(run_id: str) -> FakeDataRunDetail:
+    """Run header for the replay screen: attacker, suite, runner, token usage."""
+    if demo_mode() != "cached":
+        return serve("fake_data_run_detail", FakeDataRunDetail, OWNER, run_id=run_id)
+    run = _load(run_id)
+    usage = run.get("usage") or {}
+    return FakeDataRunDetail(
+        mock=run["not_a_result"],
+        run_id=run["run_id"],
+        trial_id=run["trial_id"],
+        fake_site_id=run.get("fake_site_id"),
+        attacker_id=run["attacker"]["id"],
+        attacker_kind=run["attacker"].get("kind", ""),
+        attacker_model=run["attacker"].get("model", ""),
+        attacker_seed=run["attacker"].get("seed"),
+        suite_version=run["suite"]["version"],
+        threshold=run["suite"]["threshold"],
+        runner=run.get("runner", ""),
+        rounds_planned=run.get("rounds_planned", len(run["rounds"])),
+        rounds_done=len(run["rounds"]),
+        input_tokens=usage.get("input_tokens", 0),
+        output_tokens=usage.get("output_tokens", 0),
+        label=run.get("label"),
+    )
+
+
+@router.get(
+    "/runs/{run_id}/stream",
+    responses={200: {"model": RoundEvent, "description": "text/event-stream: each `round` event's data is a RoundEvent; then one `done` event."}},
+)
 async def stream_run(run_id: str) -> EventSourceResponse:
     """SSE: one `round` event per fake-data round (RoundEvent shape), then a `done` event.
 

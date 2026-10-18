@@ -49,7 +49,7 @@ def guess_cards(trial_id: str = "tr_2026_B") -> GuessCards:
 def score_guesses(body: GuessScoreRequest) -> GuessScore:
     """Score the judge's guesses; return Probe's guesses and the truth."""
     mode = demo_mode()
-    if mode != "mock":
+    if mode == "live":
         raise NotImplementedError(f"owner: {OWNER} ({mode} mode)")
     key = load_mock("guess_cards_key")
     assert isinstance(key, dict)

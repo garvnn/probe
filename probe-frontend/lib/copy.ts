@@ -30,6 +30,11 @@ export const copy = {
     days_between_visits: 'Time between visits', kit_returns: 'Kit return records',
     lab_draw_times: 'Lab draw times'
   } as Record<string, string>,
+  checkLabels: {
+    digit_pref: 'Terminal digit preference', variance: 'Variance (too tidy)', inlier: 'Inlier (too average)',
+    corr_struct: 'Correlation structure', autocorr: 'Within-patient autocorrelation', date_anomaly: 'Date anomalies',
+    ae_rate: 'AE under-reporting', missingness: 'Missingness', learned: 'Learned check (Patch)'
+  } as Record<string, string>,
   patientFields: {
     n_unsched: 'Unscheduled visits', unscheduled_visits: 'Unscheduled visits',
     ae_terms: 'Side effects reported', gi_adverse_events: 'Stomach side effects reported', antiemetic: 'Anti-nausea medication', antiemetic_yes: 'Anti-nausea medication',

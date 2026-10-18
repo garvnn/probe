@@ -22,6 +22,7 @@ CASES: list[tuple[str, str, dict | None]] = [
     ("POST", "/blind-leak/runs", {"trial_id": TID}),
     ("POST", "/blind-leak/policy", {"trial_id": TID, "remedies": ["central_lab"]}),
     ("POST", "/blind-leak/cheapest-fix", {"trial_id": TID}),
+    ("GET", "/fake-data/runs/fr_01", None),
     ("GET", "/blind-leak/guess-cards", None),
     ("POST", "/blind-leak/guess-cards/score", {"trial_id": TID, "guesses": {"C1": "drug", "C2": "drug"}}),
     ("GET", "/contract/demo", None),
@@ -50,7 +51,7 @@ def test_route_returns_mock(client: TestClient, method: str, path: str, body: di
 
 
 def test_every_route_is_covered() -> None:
-    tested = {(m, p.replace(TID, "{trial_id}").replace("/demo", "/{trial_id}")) for m, p, _ in CASES}
+    tested = {(m, p.replace(TID, "{trial_id}").replace("/demo", "/{trial_id}").replace("/fr_01", "/{run_id}")) for m, p, _ in CASES}
     tested.add(("GET", "/fake-data/runs/{run_id}/stream"))
     routes = {(m, r.path) for r in app.routes if isinstance(r, APIRoute) for m in r.methods}
     assert routes <= tested, f"untested routes: {routes - tested}"

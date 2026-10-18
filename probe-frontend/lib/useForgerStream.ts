@@ -1,15 +1,16 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api } from './api';
+import { api, type Schemas } from './api';
 import { asObj } from './utils';
 export type StreamStatus = 'idle' | 'connecting' | 'streaming' | 'done' | 'paused' | 'error';
+export type RoundEvent = Schemas['RoundEvent'];
 /** EventSource transport + buffered replay. Pausing does not drop server events. */
 export function useForgerStream(runId: string | null) {
-  const [rounds, setRounds] = useState<unknown[]>([]);
+  const [rounds, setRounds] = useState<RoundEvent[]>([]);
   const [status, setStatus] = useState<StreamStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [replayIndex, setReplayIndex] = useState(0);
-  const buffer = useRef<unknown[]>([]); const paused = useRef(false); const streamDone = useRef(false);
+  const buffer = useRef<RoundEvent[]>([]); const paused = useRef(false); const streamDone = useRef(false);
   useEffect(() => {
     buffer.current = []; paused.current = false; streamDone.current = false;
     setRounds([]); setReplayIndex(0); setError(null);
@@ -26,7 +27,7 @@ export function useForgerStream(runId: string | null) {
         if (item.event === 'error' || item.type === 'error') { setError(String(item.message || 'Stream error')); setStatus('error'); source.close(); return; }
         // Ignore heartbeats; never add non-round messages to the replay.
         if (item.round === undefined && item.scores === undefined && item.checks === undefined) return;
-        buffer.current.push(payload);
+        buffer.current.push(payload as RoundEvent);
         if (!paused.current) { setRounds([...buffer.current]); setReplayIndex(buffer.current.length); setStatus('streaming'); }
       } catch { setError('Unparseable stream event'); setStatus('error'); }
     };
