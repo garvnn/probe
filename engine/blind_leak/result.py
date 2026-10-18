@@ -40,6 +40,7 @@ class BlindResult:
     n_permutations: int = 0
     seed: int = 0
     folds: list[dict] = field(default_factory=list)
+    null_accuracy: list[float] = field(default_factory=list)
 
     @property
     def blind_holds(self) -> bool:
@@ -82,6 +83,7 @@ def run_blind(
         n_permutations=n_permutations,
         seed=seed,
         folds=[vars(f) for f in perm.observed.folds],
+        null_accuracy=[float(v) for v in perm.null_accuracy],
     )
 
 
