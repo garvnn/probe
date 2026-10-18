@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 import pytest
 
-from engine.blind_leak.attribution import leak_table
+from engine.blind_leak.attribution import drop_column_auc, leak_table
 from engine.blind_leak.classifier import cross_validate, site_folds
 from engine.blind_leak.features import build_features
 from engine.blind_leak.permutation import FAST_N, run_permutation, shuffle_within
@@ -51,7 +52,26 @@ def test_injected_leak_detected_and_ranked_first(leaky) -> None:
     assert r.p_value < 0.05
     table = leak_table(X, y, groups, seed=0, top=5)
     assert table.iloc[0]["field"] == "dispensing__titration_step_n"
-    assert table.iloc[0]["drop_auc"] > 0
+    # Other dispensing counts and timings retain the leak when one feature is removed.
+    # A signed per-feature drop can therefore be zero or negative after retraining.
+    assert np.isfinite(table["drop_auc"]).all()
+    dispensing = [c for c in X.columns if c.startswith("dispensing__")]
+    drop = drop_column_auc(X, y, groups, {"dispensing": dispensing}, seed=0)
+    assert drop["dispensing"] > 0
+
+
+def test_redundant_leak_requires_group_ablation() -> None:
+    y = pd.Series(np.tile([0, 1], 400))
+    groups = pd.Series(np.repeat(np.arange(20), 40))
+    # Keep a neutral feature so joint removal exercises CV, not the empty-matrix fallback.
+    X = pd.DataFrame({"signal": y, "duplicate": y, "neutral": np.zeros(len(y))})
+    drop = drop_column_auc(X, y, groups, {
+        "signal": ["signal"], "duplicate": ["duplicate"], "both": ["signal", "duplicate"],
+    }, seed=0)
+    # Either copy alone predicts the arm perfectly. Removing both leaves chance AUC.
+    assert drop["signal"] == pytest.approx(0)
+    assert drop["duplicate"] == pytest.approx(0)
+    assert drop["both"] == pytest.approx(0.5)
 
 
 def test_no_site_in_both_train_and_test(leaky) -> None:
