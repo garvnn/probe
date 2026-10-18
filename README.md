@@ -2,244 +2,156 @@
 
 **Penetration testing for clinical trials.**
 
-Probe attacks a clinical trial before a real attacker or a real accident does. Then it proves the fix works on an attack it has never seen.
+A trial makes promises. Probe writes them down as an **Integrity Contract** and searches for counterexamples: fabricated sites that pass monitoring, or operational records that reveal treatment assignment. It then evaluates changes to the monitoring system and access policies.
 
-> **Probe never touches, alters, or "fixes" patient data.** It patches the *monitoring system* and the *information boundary*. It tests fraud checks and access policies, not records.
+> **Probe never touches, alters, or “fixes” patient data.** We patch the monitoring system and the information boundary, never patient records.
 
-Built at HackHarvard 2026 for the Regeneron track (Reinvent Clinical Trials), with Daytona, Chalk, and Factory.
+Built at HackHarvard 2026 for the Regeneron Reinvent Clinical Trials track, with **Daytona** and **Chalk**. All trial data is semi-synthetic: public NHANES physiology plus a simulated trial layer. Probe does not operate on real clinical-trial patient records.
 
----
+## Integrity Contract
 
-## The idea: a trial's Integrity Contract
-
-Every randomized trial makes promises it has to keep. Probe writes them down as an **Integrity Contract** and searches for counterexamples to it.
-
-| Property | Rule | Tested by |
+| Property | Promise | How Probe tests it |
 |---|---|---|
-| **Data authenticity** | Fabricated site data must not be accepted as authentic | Impostor |
-| **Treatment confidentiality** | Coordinator- and assessor-visible data must not predict who got the real drug | Tell |
-| **Statistical integrity** | Undetected integrity failures must not materially change the trial's conclusion | Damage + Breaking Point analysis |
-| **Safety accessibility** | Required safety information stays visible to the people who need it | Constraint on every fix |
-| **Operational utility** | Defenses must keep required site tasks possible | Constraint on every fix |
+| **Data authenticity** | Fabricated site data must not be accepted as authentic | Impostor attacks Sentinel; Patch evaluates a learned monitoring check |
+| **Treatment confidentiality** | Role-visible records must not reveal treatment assignment | Tell predicts treatment arm; Seal evaluates access-policy remedies |
+| **Statistical integrity** | Undetected integrity failures must not materially change the trial’s conclusion | ANCOVA damage analysis and Breaking Point |
+| **Safety accessibility** | Required safety information stays visible to those who need it | Investigator adverse-event access is a hard constraint |
+| **Operational utility** | Defenses must preserve required site tasks | Explicit task requirements constrain remedy selection |
 
-Every property starts as **UNTESTED**. A run flips each one to **HELD** or **BROKEN**, and a broken property comes with the counterexample that broke it.
+Properties begin **UNTESTED**. Measurements can produce a counterexample (**BROKEN**) or support a property within the tested scope (**HELD**). Missing evidence stays UNTESTED.
 
-## Why
+## Measured results
 
-Every trial relies on two assumptions, and both are usually checked after the fact, if at all:
+These are measurements, not demo targets or claims of clinical validation.
 
-1. **The data is real.** Central statistical monitoring exists, but it's tuned against human fakers. Taloni et al. (2025, *JAMA Ophthalmology*) showed a custom GPT could refine fabricated datasets until some passed forensic checks as authentic.
-2. **The blind holds.** In practice the drug leaves fingerprints in ordinary paperwork: side effects cause extra visits, and dose changes create pharmacy records. A review of 300 blinded trials found only 8% explicitly reported the risk of unblinding.
+### Impostor, Sentinel, and Patch
 
-Probe attacks both before the first patient is enrolled, the same way a bank hires pentesters before real attackers show up.
+**Impostor** writes a fabricated trial site, runs its code in a Daytona sandbox, and receives feedback from **Sentinel**. Saved rounds preserve the code, check scores, and fabricated outputs for replay and evaluation.
 
-## Names
+**Patch** adds a learned monitoring check behind an acceptance gate. Sentinel v0 and v1 are frozen; v1 is locked and is not tuned again.
 
-The pitch uses short names; the code uses names that say what each piece does.
+- **Sentinel v1 caught every v0 escape across four held-out runs: 13 fabricated sites that v0 missed.** Adaptive rounds within a run are not independent trials.
+- **False alarms stayed at 3.9% on 1,000 held-out honest sites** for both frozen versions.
+- The accepted monitoring check is the learned fallback classifier check.
 
-| Pitch name | Code |
-|---|---|
-| Trial Twin | `engine/simulator` |
-| Sentinel | `engine/fraud_checks` |
-| Impostor | `engine/fake_data` |
-| Tell | `engine/blind_leak` (attack) |
-| Seal | `engine/blind_leak/cheapest_fix.py` |
-| Sparring | training attacker |
-| Stranger | test attacker |
-| Patch | `engine/patch` |
-| Breaking Point | `engine/analysis/breaking_point.py` |
-| Guess Who, Integrity Contract, Probe Report | unchanged |
+The final frozen comparison is in [patch_report.json](engine/fraud_checks/frozen/patch_report.json). Its final v1 table reflects recalibration; the earlier gate section records the pre-recalibration result.
 
-## The two attack heads
+### Tell: can the coordinator infer treatment?
 
-### Impostor: fake data (the main attack)
+On `tr_2026_B`, the Linux measurement gives **74.9% accuracy and 0.853 AUC** from the coordinator view. The mechanisms-off control is **approximately 50% accuracy**, at chance.
 
-1. An LLM attacker writes Python that fabricates an entire trial site.
-2. That code runs in a **Daytona** sandbox. No LLM-written code ever runs on a laptop.
-3. Sentinel, the fraud-check suite, scores the fake site. The attacker sees which checks fired and rewrites its code. This repeats for several rounds.
-4. Every fake that escapes becomes a counterexample. **Factory Droid** acts as the defender and writes a new fraud check (the Patch). The check ships only if false alarms on real sites stay flat.
-5. A **brand-new test attacker** (Stranger: different model, prompt, and seed, never seen during patching) attacks the patched check suite. We report evasion before and after patching against the test attacker. The training attacker (Sparring) is the one used for patching.
-6. **Damage:** how far the undetected fakes move the trial's treatment effect, and whether a drug with zero true effect could be made to look significant.
-7. **Breaking Point:** how many undetected fake sites it takes to flip the trial's conclusion, before vs after patching.
+Tell builds features only from a role’s exported view, uses cross-validation grouped by site, and compares the observed accuracy against a within-site permutation null. SHAP and drop-column attribution identify leaking fields. Ground-truth treatment labels enter scoring only, after features are built.
 
-### Tell: blind leak
+The headline uses the Linux seed-0 measurement documented in [Seal’s results](docs/seal.md). The [cached demo](docs/precompute-demo.md) uses seed 2026 for classifier/permutation randomness; its exact replay values differ. The trial seed is 2026 in both cases.
 
-1. A classifier sees **only** the site coordinator's view of the data and predicts each patient's treatment arm. It is cross-validated by site and compared against a permutation null.
-2. SHAP and drop-column attribution name the fields that leak the arm.
-3. Each leaking field maps to a real-world remedy: an unblinded pharmacist, routing efficacy labs through a central lab, sham titration in the placebo arm, or matched kits. Probe brute-forces every combination and picks the **cheapest** one (the Seal) that brings accuracy back to chance while operational tasks stay supported.
-4. Adverse events are never hidden. When the leak comes from safety data, the remedy is a separate blinded outcome assessor.
+**Bias firewall:** Tell’s implementation is developed from [docs/schema.md](docs/schema.md) and `export_view()` output, without inspecting simulator implementation.
 
-> **We use AI where an attacker would.** Everything that judges the attack (the statistical checks, the classifier, the primary analysis, every metric) is plain, deterministic statistics you can audit.
+### Seal: confidentiality has an operational cost
 
-### What Probe does not do
+Seal measures all 16 subsets of four remedies on the **coordinator view**. It minimizes assigned relative cost, subject to AUC ≤0.55, utility ≥0.90, and investigator safety access.
 
-- It doesn't touch, alter, or "fix" patient data, and it doesn't use real trial data.
-- It doesn't fix leaks that happen in the room, such as patients visibly feeling sick. It can only report how much leakage is left in the data.
-- It doesn't hide safety information from anyone who needs it.
-- It makes no claim of regulatory validity or real-world fraud detection. It's a pre-launch stress test.
+| Policy | Coordinator AUC | Tasks retained | Assigned cost |
+|---|---:|---:|---:|
+| No remedies | 0.853 | 6/6 | 0 |
+| `unblinded_pharmacist` | 0.638 | 6/6 | 3 |
+| `sham_titration` + `matched_kits` | 0.511 | 5/6 | 2 |
 
----
+One remedy cuts leakage from **0.85 to 0.64 AUC with zero disruption under the task model**. Closure to approximately chance costs **one operational task**: the cheapest combination reaching the AUC ceiling masks storage condition and temperature, losing the inventory-monitoring task.
 
-## The simulated trial (Trial Twin)
+Utility is an **assigned model** of six equally weighted tasks, not measured staff productivity. Costs are **assigned relative units**, not monetary estimates. With six binary tasks, retaining five gives utility 0.833; therefore **no combination meets both the current AUC and utility thresholds**, and Seal returns no recommendation. All **493 investigator adverse-event rows remained unchanged across all 16 combinations**.
 
-The fictional drug **PRB-101** treats type 2 diabetes. The primary endpoint is the change in HbA1c from baseline to week 24. All effect sizes are simulation parameters we chose, not claims about any real drug.
+See [the task model and measured tradeoff](docs/seal.md). No thresholds or utility assumptions were changed to manufacture a feasible result.
 
-```
-NHANES adults with diabetes-range HbA1c        (real, public physiology)
-  ↓ 1:1 block randomization within site        (seeded, logged)
-  ↓ 20 sites × ~40 patients
-  ↓ visits: screen, baseline, wk 2/4/8/12/16/20/24 (+ unscheduled)
-  ↓ HbA1c trajectory = baseline + arm effect + patient noise + site effect
-  ↓ documented mechanisms that leave operational traces:
-      nausea on drug       → unscheduled visits, antiemetics, AE entries
-      dose titration       → pharmacy dispensing events
-      lower glucose        → local fingerstick values differ
-      cold-chain drug      → kit storage / temperature log entries
-  ↓ ground truth written to a separate, locked table
-```
+### Damage and Breaking Point
 
-- **Scenario A:** the drug works (−0.6 HbA1c vs −0.1 on placebo).
-- **Scenario B:** the drug is useless (its effect equals placebo). This is the scenario for the damage demo.
-- **Control:** with all mechanisms turned off, the blind-leak attack must score at chance. If it doesn't, that's a bug, not a finding.
+The primary analysis is ANCOVA on week-24 HbA1c change, with baseline HbA1c and site as covariates. Damage analysis uses saved escaped fakes’ own arm assignments; it never runs a new attacker.
 
-**Bias firewall:** whoever builds the blind-leak attack never reads the simulator code. They see only `docs/schema.md` and the exported views. Every leak mechanism and its strength is documented in `docs/assumptions.md`, and mechanism strengths are configurable so results can be shown across a range of settings.
+The committed seed-43 run contains four saved v0 escapes. Adding those sites shifts the estimated effect, but **does not flip the conclusion through four sites**. Frozen v1 rejects all four, so its accepted-fake curve contains only the baseline. A missing breaking point does not establish resilience beyond the observed range.
 
-### Sentinel v0: fraud checks (published central-statistical-monitoring methods)
+## Daytona and Chalk
 
-| Check | What it catches |
-|---|---|
-| Terminal digit preference | Rounding to 0/5 in BP readings |
-| Variance / inlier | Fakes that are too tidy or too average |
-| Correlation structure | Broken relationships (SBP↔DBP, weight↔BMI, glucose↔HbA1c) |
-| Within-patient autocorrelation | Trajectories that are too smooth or too random |
-| Date anomalies | Weekend visits, perfect visit-window adherence |
-| AE under-reporting | Fakers forgetting side effects |
-| Missingness | Fakes with no missing data |
+- **Daytona:** all attacker code runs in isolated sandboxes. Saved attacker source is replayed as text; cache generation deserializes saved outputs without executing that source.
+- **Chalk:** Tell’s features are defined in Chalk, deployed, and represented in a populated feature catalog. The treatment-arm label is kept out of the feature catalog and feature inputs; it is used only for scoring. Feature deployment is distinct from the generic metric-logging adapter in `integrations/chalk.py`, which remains a stub.
 
-The check-suite threshold is calibrated so that no more than 5% of real sites get flagged, and it is frozen before any attack runs.
+## Run the demo
 
----
+Use Python 3.11 and `uv`:
 
-## Evaluation
-
-**Primary metric:** test-attacker evasion rate. This is the fraction of the test attacker's fake sites that escape detection, measured for check suite v0 and for the patched suite vN at the same false-alarm budget.
-
-| Metric | Target direction |
-|---|---|
-| `fraud_evasion_rate` (training attacker) | down after patching |
-| `generalization_to_held_out_attack` (test attacker) | down after patching (**the main claim**) |
-| `legitimate_false_positive_rate` | flat (≤ +1 pt) |
-| `damage_effect_shift` | reported honestly |
-| `unblinding_accuracy` / AUC | well above 50% before, ≈50% after |
-| `permutation_null` | shows that "above chance" is real |
-| `operational_utility_retained` | high |
-| `breaking_point` | higher after patching |
-| `cheapest_fix_cost` | reported, labeled as an assigned cost |
-
-Evasion is reported as counts with Wilson 95% intervals. Blind-leak accuracy uses cross-validation grouped by site, with a permutation p-value. **No number appears in this repo, the demo, or the pitch until it has been measured.** All metrics are logged to **Chalk**.
-
----
-
-## Architecture
-
-```
-┌──────────────── Frontend (Next.js · Tailwind · Recharts) ────────────────┐
-│   Setup + Contract · Impostor Live · Patch + Stranger · Tell · Report    │
-└────────────────────────────────┬─────────────────────────────────────────┘
-                                 │ REST + SSE
-┌────────────────────────────────▼──────── Backend (FastAPI) ──────────────┐
-└───┬─────────────┬──────────────────┬───────────────────┬─────────────────┘
-┌───▼──────┐ ┌────▼─────┐   ┌────────▼─────────┐   ┌─────▼──────┐
-│simulator │ │fake_data │   │fraud_checks+patch│   │ blind_leak │
-│ (NHANES) │ │   loop   │   │  (Factory Droid) │   │            │
-└───┬──────┘ └────┬─────┘   └────────┬─────────┘   └─────┬──────┘
-    │             └── Daytona sandboxes (all LLM-written code) ──┘
-    ▼                                                    ▼
-┌──────────────────────────────── SQLite ──────────────────────────────────┐
-└────────────────────────────────┬─────────────────────────────────────────┘
-                                 ▼
-                    Chalk (features + eval metrics)
-```
-
-## Tech stack
-
-| Layer | Choice | Fallback |
-|---|---|---|
-| Backend | Python 3.11, FastAPI + SSE | Flask |
-| Frontend | Next.js 14, React, Tailwind, Recharts | Streamlit |
-| Data / stats | pandas, NumPy, SciPy, statsmodels | n/a |
-| ML / attribution | LightGBM, SHAP | sklearn, drop-column only |
-| Storage | SQLite | Parquet |
-| LLM attackers | Claude / GPT (training and test attackers on different models) | Same model with a different prompt and seed |
-| Sandbox | Daytona | Local Docker |
-| Evals | Chalk | Local metrics table |
-| Defender agent | Factory Droid | Fallback classifier check |
-| Data source | NHANES (public, de-identified, CDC) | Published distributions |
-
-## Repository layout
-
-```
-probe/
-├── probe-frontend/ Next.js app: 5 screens, charts, SSE client (see CLAUDE.md for status)
-├── backend/        FastAPI: routes, run state, background tasks, SSE
-├── engine/
-│   ├── simulator/     NHANES load, trial builder, mechanisms, views
-│   ├── fraud_checks/  SiteCheck base, check suite, calibration, versions
-│   ├── fake_data/     training + test attacker prompts, loop, schema validation
-│   ├── patch/         Droid task builder, acceptance gate, fallback check
-│   ├── blind_leak/    classifier, permutation, SHAP, remedies, utility, cheapest fix
-│   └── analysis/      ANCOVA primary analysis, damage, breaking point
-├── integrations/   daytona.py, chalk.py, factory.py (thin, mockable)
-├── evals/          metric definitions, scenario suite, results export
-├── scripts/        download_nhanes.py, precompute_demo.py, run_full_eval.py
-├── data/           raw NHANES (gitignored), processed parquet, demo cache
-├── tests/          imports, every route in mock mode, mechanisms-off control
-└── docs/           schema.md, assumptions.md, pitch notes
-```
-
-## Getting started
-
-```bash
-git clone https://github.com/garvnn/probe.git && cd probe
-python3.11 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+```sh
+git clone https://github.com/garvnn/probe.git
+cd probe
+uv venv --python 3.11 .venv
+uv pip install --python .venv/bin/python -r requirements.txt
 cp .env.example .env
 ```
 
-```bash
-make dev     # API on :8000 with autoreload
-make test    # pytest
-make mock    # API serving fixtures only (DEMO_MODE=mock), for frontend work
-make web     # frontend on :3000 (first time: cd probe-frontend && npm install)
-make types   # regenerate frontend API types after changing backend/models.py
+Keep keys in the gitignored `.env`. Daytona and the configured model provider are needed for live attacker execution; replaying committed caches does not require a new attacker call.
+
+```sh
+# API: explicit sample fixtures
+make mock
+
+# Frontend, in another terminal
+cd probe-frontend
+npm install
+npm run dev
 ```
 
-```
-ANTHROPIC_API_KEY=        # or OPENAI_API_KEY
-TRAINING_ATTACKER_MODEL=
-TEST_ATTACKER_MODEL=
-DAYTONA_API_KEY=
-CHALK_CLIENT_ID=
-CHALK_CLIENT_SECRET=
-FACTORY_API_KEY=
-DEMO_MODE=mock            # mock | cached | live
-DEMO_SEED=2026
-DB_PATH=data/probe.db
+For measured cached responses:
+
+```sh
+DEMO_MODE=cached CACHED_REPLAY_SPEED=0 .venv/bin/python -m uvicorn backend.main:app
+
+# Endpoint and SSE audit, in another terminal
+.venv/bin/python -m scripts.check_cached_demo
 ```
 
-`DEMO_MODE=mock` serves the JSON fixtures in `backend/mocks/` (every payload tagged `"_mock": true`) so the frontend can be built before the engine exists. `DEMO_MODE=cached` replays a precomputed run (`scripts/precompute_demo.py`) through the same UI at real speed, as a backup in case the APIs fail during the demo.
+To regenerate caches from the existing locked `tr_2026_B` database:
 
-## Team
+```sh
+DEMO_SEED=2026 .venv/bin/python -m scripts.precompute_demo
+```
 
-| Person | Owns |
-|---|---|
-| **Garv** (Data) | Simulator, NHANES pipeline, `schema.md`, `assumptions.md`, fraud-check core (base, suite, calibration, core checks), ground truth, primary analysis, damage, breaking point |
-| **Shreyas** (Fake data) | Training + test attacker prompts, fake-data loop, acceptance gate, Droid task, Daytona, Factory, LLM integrations, demo precompute |
-| **Ajay** (Blind leak + evals) | Blind leak (features, classifier, permutation, SHAP, remedies, utility, cheapest fix), rate checks, fallback check, Chalk, evals |
-| **Akarsh** (Frontend + pitch) | Next.js frontend, Guess Who, report page, demo script, Devpost |
+The precompute command reuses the committed seed-43 Impostor run and frozen Patch report. It does not generate a replacement trial or a new attacker run. See [cache generation, provenance, and remaining sample endpoints](docs/precompute-demo.md).
 
-`main` should always be in a demoable state. Branch names: `data/*`, `fake_data/*`, `blind/*`, `ui/*`.
+`DEMO_MODE` selects `mock`, `cached`, or `live`. Missing cached measurements retain their **`_mock: true`** sample badges. A measured payload is **`_mock: false`**; that does not mean every Integrity Contract property has been tested or held. Live mode is implemented per route, not a promise that every screen is complete.
 
-## Responsible use
+```sh
+.venv/bin/python -m pytest -q  # tests
+make dev                     # API with autoreload
+make types                   # regenerate frontend types from a running API
+```
 
-Probe is a defensive stress-test harness. Its attackers exist only to find weaknesses in fraud monitoring and blinding controls before a real trial depends on them. It runs only on semi-synthetic data, and attacker code runs only in isolated sandboxes.
+## Repository layout
+
+```text
+probe-frontend/             Next.js UI, charts, and SSE replay
+backend/                    FastAPI routes, response models, mocks, and cache lookup
+engine/
+  simulator/                Trial Twin: NHANES-based trial generation and role exports
+  fraud_checks/             Sentinel: checks, calibration, frozen v0/v1, Patch report
+  fake_data/                Impostor: attacker loop, saved outputs, and replay cache
+  patch/                    Patch: learned check, acceptance gate, frozen-suite pipeline
+  blind_leak/               Tell and Seal: features, classifier, null, attribution, remedies
+  analysis/                 ANCOVA, damage, and Breaking Point
+integrations/               Sandbox, model-provider, and integration adapters
+scripts/                    Precompute, cached endpoint audit, and run commands
+evals/                      Ground-truth scoring and evaluation interfaces
+data/                       NHANES base and saved demo artifacts
+  demo_cache/precomputed/   Measured response payloads, provenance, endpoint audit
+docs/                       Public schema, assumptions, ownership, and measured results
+tests/                      Statistical, engine, API, and cache regression tests
+```
+
+See [docs/OWNERS.md](docs/OWNERS.md) for team ownership.
+
+## Limitations and next steps
+
+- **Sentinel v1 has not been tested against a different-model attacker.** That evaluation belongs to future work, not the measured results above. Held-out runs are not evidence of different-model generalization.
+- All findings concern this semi-synthetic trial and these frozen checks. They do not establish regulatory validity, clinical safety, or real-world fraud-detection performance.
+- Seal currently finds no policy satisfying both confidentiality and the declared utility floor. Policy selection on the same trial is not independent validation of the chosen policy.
+- Tell tests information in exported records. It cannot test clues outside the data, such as what a participant visibly experiences.
+- Existing caches were generated before Seal was merged; their Seal/policy and other missing measurements remain badged samples until regenerated. The current held-out UI calls the separate test-attacker endpoint; the frozen Patch evidence is served at `/fraud-checks/held-out`.
+- Complete generic metric logging, extend independently held-out evaluation, and measure additional policies without hiding investigator safety information.
+
+Probe is a defensive stress-test harness. **We never touch patient data.**
