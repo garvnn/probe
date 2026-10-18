@@ -1,0 +1,50 @@
+{
+  "trial_id": "tr_2026_B",
+  "run_id": "fd_20261017T202527_llm_s43",
+  "rounds": [
+    {
+      "round": 7,
+      "effect_real": -0.035978788552024715,
+      "p_real": 0.5423848164946838,
+      "effect_with_fake": -0.035414151844693265,
+      "p_with_fake": 0.5321268003656503,
+      "fake_patients_analyzed": 33
+    },
+    {
+      "round": 8,
+      "effect_real": -0.035978788552024715,
+      "p_real": 0.5423848164946838,
+      "effect_with_fake": -0.04720090511323935,
+      "p_with_fake": 0.40428818236359554,
+      "fake_patients_analyzed": 38
+    },
+    {
+      "round": 13,
+      "effect_real": -0.035978788552024715,
+      "p_real": 0.5423848164946838,
+      "effect_with_fake": -0.040537209657710564,
+      "p_with_fake": 0.4741644294316475,
+      "fake_patients_analyzed": 35
+    },
+    {
+      "round": 14,
+      "effect_real": -0.035978788552024715,
+      "p_real": 0.5423848164946838,
+      "effect_with_fake": -0.04197609371246092,
+      "p_with_fake": 0.4594230817058615,
+      "fake_patients_analyzed": 36
+    }
+  ],
+  "accepted_saved_rounds": {
+    "0": [
+      7,
+      8,
+      13,
+      14
+    ],
+    "1": []
+  },
+  "available_escaped_sites": 4,
+  "note": "Only saved escaped sites used, once each. No extrapolation beyond their count.",
+  "_mock": false
+}

@@ -1,0 +1,100 @@
+{
+  "trial_id": "tr_2026_B",
+  "contract": [
+    {
+      "name": "data_authenticity",
+      "status": "broken",
+      "counterexample": "Saved run fd_20261017T202527_llm_s43 contains 4 v0 escape rounds; rounds are adaptive, not independent."
+    },
+    {
+      "name": "treatment_confidentiality",
+      "status": "broken",
+      "counterexample": "Coordinator accuracy 0.76000, AUC 0.85091, permutation p=0.00498."
+    },
+    {
+      "name": "statistical_integrity",
+      "status": "broken",
+      "counterexample": "Saved escaped fakes changed the ANCOVA effect estimate; this alone does not establish a conclusion flip."
+    },
+    {
+      "name": "safety_accessibility",
+      "status": "untested",
+      "counterexample": null
+    },
+    {
+      "name": "operational_utility",
+      "status": "untested",
+      "counterexample": null
+    }
+  ],
+  "headlines": [
+    {
+      "label": "Frozen held-out v0 escapes caught (4 runs)",
+      "before": "0 / 13",
+      "after": "13 / 13"
+    },
+    {
+      "label": "Frozen honest-site false alarms",
+      "before": "3.9%",
+      "after": "3.9%"
+    },
+    {
+      "label": "Coordinator prediction (no policy change measured)",
+      "before": "Accuracy 76.000%",
+      "after": "AUC 0.85091"
+    }
+  ],
+  "breaking_point_v0": {
+    "_mock": false,
+    "trial_id": "tr_2026_B",
+    "suite_version": 0,
+    "curve": [
+      {
+        "k": 0,
+        "effect": -0.035978788552024715,
+        "p": 0.5423848164946838
+      },
+      {
+        "k": 1,
+        "effect": -0.035414151844693265,
+        "p": 0.5321268003656503
+      },
+      {
+        "k": 2,
+        "effect": -0.046216930828029246,
+        "p": 0.3958015112447097
+      },
+      {
+        "k": 3,
+        "effect": -0.04970300130046927,
+        "p": 0.34287482171677147
+      },
+      {
+        "k": 4,
+        "effect": -0.054138175307641784,
+        "p": 0.2848759683819871
+      }
+    ],
+    "break_k": null
+  },
+  "breaking_point_vN": {
+    "_mock": false,
+    "trial_id": "tr_2026_B",
+    "suite_version": 1,
+    "curve": [
+      {
+        "k": 0,
+        "effect": -0.035978788552024715,
+        "p": 0.5423848164946838
+      }
+    ],
+    "break_k": null
+  },
+  "fixes": [
+    "Frozen Sentinel v1: every v0 escape caught across 4 held-out runs; rounds are not independent.",
+    "v1 has not been tested against a different-model attacker.",
+    "Breaking-point null means no flip among the available saved sites; it is not evidence beyond that range.",
+    "Seal: cheapest_fix is still a stub on main; cheapest-fix and policy remain badged samples"
+  ],
+  "_mock": false
+}

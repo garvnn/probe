@@ -1,0 +1,95 @@
+{
+  "_mock": false,
+  "trial_id": "tr_2026_B",
+  "seed": 2026,
+  "run_id": "fd_20261017T202527_llm_s43",
+  "source_sha256": {
+    "impostor": "6190f0435c565e13e02905aa04a0540021168d604c200380381a99c95fd22344",
+    "patch_report": "e18d3628a4821305d9d0fbae9496aaae8ed8cb2e3748faf16e262a2401c04360"
+  },
+  "responses": {
+    "patch": [
+      {
+        "path": "patch.json",
+        "request": {
+          "trial_id": "tr_2026_B",
+          "run_id": "fd_20261017T202527_llm_s43",
+          "suite_version": 0
+        }
+      }
+    ],
+    "patch_held_out": [
+      {
+        "path": "patch_held_out.json",
+        "request": {
+          "trial_id": "tr_2026_B"
+        }
+      }
+    ],
+    "blind_leak_run": [
+      {
+        "path": "blind_leak_run.json",
+        "request": {
+          "trial_id": "tr_2026_B",
+          "view": "coordinator"
+        }
+      }
+    ],
+    "damage": [
+      {
+        "path": "damage.json",
+        "request": {
+          "trial_id": "tr_2026_B"
+        }
+      }
+    ],
+    "breaking_point": [
+      {
+        "path": "breaking_point_v0.json",
+        "request": {
+          "trial_id": "tr_2026_B",
+          "suite_version": 0,
+          "max_k": 6
+        }
+      },
+      {
+        "path": "breaking_point_v1.json",
+        "request": {
+          "trial_id": "tr_2026_B",
+          "suite_version": 1,
+          "max_k": 6
+        }
+      }
+    ],
+    "contract_untested": [
+      {
+        "path": "contract.json",
+        "request": {
+          "trial_id": "tr_2026_B"
+        }
+      }
+    ],
+    "contract_mixed": [
+      {
+        "path": "contract.json",
+        "request": {
+          "trial_id": "tr_2026_B"
+        }
+      }
+    ],
+    "report": [
+      {
+        "path": "report.json",
+        "request": {
+          "trial_id": "tr_2026_B"
+        }
+      }
+    ]
+  },
+  "skipped": [
+    "Seal: cheapest_fix is still a stub on main; cheapest-fix and policy remain badged samples",
+    "Stranger: no measured different-model results on main; endpoint remains sample data",
+    "Guess Who: cards and scoring not precomputed; endpoints remain sample data",
+    "Trial setup: trial-summary/detail routes remain sample data"
+  ]
+}

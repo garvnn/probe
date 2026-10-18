@@ -1,0 +1,166 @@
+{
+  "_mock": false,
+  "demo_mode": "cached",
+  "endpoints": [
+    {
+      "endpoint": "health",
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "data": "metadata",
+      "error": null
+    },
+    {
+      "endpoint": "setup/create",
+      "method": "POST",
+      "path": "/trials",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "setup/detail",
+      "method": "GET",
+      "path": "/trials/tr_2026_B",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "contract",
+      "method": "GET",
+      "path": "/contract/tr_2026_B",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "contract/mixed",
+      "method": "GET",
+      "path": "/contract/tr_2026_B?fixture=mixed",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "impostor/create",
+      "method": "POST",
+      "path": "/fake-data/runs",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "impostor/detail",
+      "method": "GET",
+      "path": "/fake-data/runs/fd_20261017T202527_llm_s43",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "impostor/stream",
+      "method": "GET",
+      "path": "/fake-data/runs/fd_20261017T202527_llm_s43/stream",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "patch",
+      "method": "POST",
+      "path": "/fraud-checks/patch",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "patch/held-out",
+      "method": "GET",
+      "path": "/fraud-checks/held-out?trial_id=tr_2026_B",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "stranger (current held-out UI)",
+      "method": "POST",
+      "path": "/test-attacker/eval",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "tell/coordinator",
+      "method": "POST",
+      "path": "/blind-leak/runs",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "tell/assessor",
+      "method": "POST",
+      "path": "/blind-leak/runs",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "seal",
+      "method": "POST",
+      "path": "/blind-leak/cheapest-fix",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "tell/policy",
+      "method": "POST",
+      "path": "/blind-leak/policy",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "guess-who/cards",
+      "method": "GET",
+      "path": "/blind-leak/guess-cards?trial_id=tr_2026_B",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "guess-who/score",
+      "method": "POST",
+      "path": "/blind-leak/guess-cards/score",
+      "status": 200,
+      "data": "sample",
+      "error": null
+    },
+    {
+      "endpoint": "breaking-point/v0",
+      "method": "POST",
+      "path": "/breaking-point",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "breaking-point/v1",
+      "method": "POST",
+      "path": "/breaking-point",
+      "status": 200,
+      "data": "real",
+      "error": null
+    },
+    {
+      "endpoint": "report",
+      "method": "GET",
+      "path": "/report/tr_2026_B",
+      "status": 200,
+      "data": "real",
+      "error": null
+    }
+  ]
+}

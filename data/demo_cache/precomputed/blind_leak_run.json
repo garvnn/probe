@@ -1,0 +1,209 @@
+{
+  "trial_id": "tr_2026_B",
+  "view": "coordinator",
+  "remedies": [],
+  "accuracy": 0.76,
+  "auc": 0.8509125,
+  "null_lo": 0.45625,
+  "null_hi": 0.53875,
+  "utility": 1.0,
+  "top_leaks": [
+    {
+      "field": "dispensing__titration_step_n",
+      "label": "dispensing: titration step n",
+      "group": "dispensing",
+      "importance": 0.3492,
+      "shap": 2.2117930989453725,
+      "drop_auc": -0.000543749999999954
+    },
+    {
+      "field": "kit_storage__received_refrigerated__mean",
+      "label": "kit storage: received refrigerated / mean",
+      "group": "kit_storage",
+      "importance": 0.0521,
+      "shap": 0.3301374950181479,
+      "drop_auc": -0.0002562499999999579
+    },
+    {
+      "field": "kit_storage__received_refrigerated__std",
+      "label": "kit storage: received refrigerated / std",
+      "group": "kit_storage",
+      "importance": 0.0488,
+      "shap": 0.3092360456827345,
+      "drop_auc": -0.001131250000000028
+    },
+    {
+      "field": "dispensing__gap_mean",
+      "label": "dispensing: gap mean",
+      "group": "dispensing",
+      "importance": 0.0374,
+      "shap": 0.2370748435369905,
+      "drop_auc": 0.0027249999999999774
+    },
+    {
+      "field": "kit_storage__received_refrigerated__first",
+      "label": "kit storage: received refrigerated / first",
+      "group": "kit_storage",
+      "importance": 0.035,
+      "shap": 0.22186818937730338,
+      "drop_auc": -0.00468124999999997
+    }
+  ],
+  "p_value": 0.004975124378109453,
+  "p_value_auc": 0.004975124378109453,
+  "n_permutations": 200,
+  "seed": 2026,
+  "folds": [
+    {
+      "fold": 0,
+      "test_sites": [
+        "S05",
+        "S10",
+        "S15",
+        "S20"
+      ],
+      "train_sites": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S11",
+        "S12",
+        "S13",
+        "S14",
+        "S16",
+        "S17",
+        "S18",
+        "S19"
+      ],
+      "n_test": 160,
+      "accuracy": 0.79375,
+      "auc": 0.86859375
+    },
+    {
+      "fold": 1,
+      "test_sites": [
+        "S04",
+        "S09",
+        "S14",
+        "S19"
+      ],
+      "train_sites": [
+        "S01",
+        "S02",
+        "S03",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S15",
+        "S16",
+        "S17",
+        "S18",
+        "S20"
+      ],
+      "n_test": 160,
+      "accuracy": 0.7375,
+      "auc": 0.8656250000000001
+    },
+    {
+      "fold": 2,
+      "test_sites": [
+        "S03",
+        "S08",
+        "S13",
+        "S18"
+      ],
+      "train_sites": [
+        "S01",
+        "S02",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S14",
+        "S15",
+        "S16",
+        "S17",
+        "S19",
+        "S20"
+      ],
+      "n_test": 160,
+      "accuracy": 0.71875,
+      "auc": 0.8178125
+    },
+    {
+      "fold": 3,
+      "test_sites": [
+        "S02",
+        "S07",
+        "S12",
+        "S17"
+      ],
+      "train_sites": [
+        "S01",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S13",
+        "S14",
+        "S15",
+        "S16",
+        "S18",
+        "S19",
+        "S20"
+      ],
+      "n_test": 160,
+      "accuracy": 0.7375,
+      "auc": 0.83828125
+    },
+    {
+      "fold": 4,
+      "test_sites": [
+        "S01",
+        "S06",
+        "S11",
+        "S16"
+      ],
+      "train_sites": [
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S12",
+        "S13",
+        "S14",
+        "S15",
+        "S17",
+        "S18",
+        "S19",
+        "S20"
+      ],
+      "n_test": 160,
+      "accuracy": 0.8125,
+      "auc": 0.90390625
+    }
+  ],
+  "_mock": false
+}
