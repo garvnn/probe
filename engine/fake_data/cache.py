@@ -21,7 +21,9 @@ def cache_dir() -> Path:
 def run_path(run_id: str) -> Path:
     if not run_id.startswith(RUN_PREFIX) or "/" in run_id or ".." in run_id:
         raise FileNotFoundError(f"not a fake-data run id: {run_id!r}")
-    return cache_dir() / f"{run_id}.json"
+    # Keep Stranger out of Patch's root-level fd_*.json training corpus and Impostor replay.
+    directory = cache_dir() / "stranger" if run_id.startswith("fd_stranger_") else cache_dir()
+    return directory / f"{run_id}.json"
 
 
 def save_run(run: dict) -> Path:

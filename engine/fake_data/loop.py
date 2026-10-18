@@ -154,6 +154,7 @@ def fake_data_loop(
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "trial_id": trial.trial_id,
         "scenario": trial.config.scenario,
+        "trial_seed": trial.config.seed,
         "fake_site_id": site_id,
         "suite": {"name": getattr(suite, "name", type(suite).__name__), "version": suite.version, "threshold": suite.threshold, "standin": standin},
         "attacker": {
@@ -173,6 +174,9 @@ def fake_data_loop(
     }
     if run["not_a_result"]:
         run["label"] = "TEMPORARY: stand-in checks and/or scripted attacker. Not a result."
+    if attacker.attacker_id == "test":
+        from engine.fake_data.stranger import frozen_hashes
+        run["frozen_sha256"] = frozen_hashes()
 
     history: list[Round] = []
     feedback: dict | None = None

@@ -27,5 +27,13 @@
       ],
       "fp_rate": 0.051
     }
-  ]
+  ],
+  "evaluation_unit": "rounds",
+  "round_budget": null,
+  "model": null,
+  "fp_population": "Sample fixture only",
+  "limitations": [
+    "Sample data, not a measured evaluation"
+  ],
+  "per_run": []
 }

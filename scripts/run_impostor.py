@@ -12,6 +12,7 @@ Usage:
     .venv/bin/python scripts/run_impostor.py --attacker llm --seed 41  # one collection run with a fixed attacker seed
     .venv/bin/python scripts/run_impostor.py --suite-version 1       # attack a later frozen Sentinel version
     .venv/bin/python scripts/run_impostor.py --runner mock           # no Daytona key; never runs the code
+    .venv/bin/python scripts/run_impostor.py --role test --seed 87302 # Stranger, post-freeze, v0 feedback
 """
 
 from __future__ import annotations
@@ -49,6 +50,7 @@ def default_seed() -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--attacker", choices=["auto", "scripted", "llm"], default="auto", help="auto = llm if a key is set, else scripted")
+    parser.add_argument("--role", choices=["training", "test"], default="training")
     parser.add_argument("--rounds", type=int, default=10)
     parser.add_argument("--seed", type=int, default=None, help="attacker seed (default: derived from the current time); recorded in the run")
     parser.add_argument("--scenario", choices=["A", "B"], default="B")
@@ -74,6 +76,14 @@ def main(argv: list[str] | None = None) -> None:
     if args.seed is None:
         args.seed = default_seed()
     load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+    if args.rounds < 1:
+        raise ValueError("--rounds must be positive")
+    if args.role == "test":
+        from engine.fake_data.stranger import assert_test_ready
+        assert_test_ready(args.seed)
+        if args.attacker == "scripted" or args.runner != "daytona" or args.suite_version != 0 or args.stop_on_escape:
+            raise ValueError("Stranger requires an LLM, Daytona, a fixed round budget, and v0-only feedback")
+        args.attacker = "llm"
 
     from engine.fake_data.attacker import make_attacker
     from engine.fake_data.cache import run_path
@@ -88,9 +98,11 @@ def main(argv: list[str] | None = None) -> None:
     trial = generate_trial(TrialConfig(scenario=args.scenario, seed=args.trial_seed, mechanisms=DEFAULT_MECHANISMS))
     real_sites = split_sites(trial)
     suite = load_suite(args.suite_version)
-    attacker = make_attacker("training", kind=args.attacker, seed=args.seed)
+    attacker = make_attacker(args.role, kind=args.attacker, seed=args.seed)
     runner = DaytonaRunner(reuse=False) if args.runner == "daytona" else LocalMockRunner()
     run_id = f"fd_{time.strftime('%Y%m%dT%H%M%S')}_{attacker.kind}_s{args.seed}"
+    if args.role == "test":
+        run_id = f"fd_stranger_{time.strftime('%Y%m%dT%H%M%S')}_s{args.seed}"
 
     print(f"trial {trial.trial_id}: {len(real_sites)} real sites; suite '{suite.name}' threshold {suite.threshold} (false alarms {suite.false_alarm_rate(real_sites):.0%})")
     print(f"attacker: {attacker.kind} ({attacker.model}), seed {args.seed}; suite v{suite.version}; runner: {type(runner).__name__}; run {run_id}\n")
