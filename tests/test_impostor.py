@@ -318,5 +318,6 @@ def test_cached_mode_serves_fixtures_for_uncached_routes(monkeypatch: pytest.Mon
     from backend.main import app
 
     monkeypatch.setenv("DEMO_MODE", "cached")
-    r = TestClient(app).post("/test-attacker/eval", json={"trial_id": "tr_2026_B"})
+    # Stranger now has a measured cache; Breaking Point still uses the shared fixture fallback.
+    r = TestClient(app).post("/breaking-point", json={"trial_id": "tr_2026_B"})
     assert r.status_code == 200 and r.json()["_mock"] is True

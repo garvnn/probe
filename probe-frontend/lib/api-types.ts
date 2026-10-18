@@ -833,8 +833,29 @@ export interface components {
             never_seen_during_patching: boolean;
             /** Rows */
             rows: components["schemas"]["TestAttackerRow"][];
+            /**
+             * Evaluation Unit
+             * @default rounds
+             * @enum {string}
+             */
+            evaluation_unit?: "runs" | "rounds";
+            /** Round Budget */
+            round_budget?: number | null;
+            /** Model */
+            model?: string | null;
+            /** Fp Population */
+            fp_population?: string | null;
+            /** Limitations */
+            limitations?: string[];
+            /** Per Run */
+            per_run?: components["schemas"]["TestAttackerRunSummary"][];
         };
-        /** TestAttackerRow */
+        /**
+         * TestAttackerRow
+         * @description Measured rows count independent attack runs, with any valid escape as success.
+         *
+         *     fp_rate is measured on the requested trial's honest sites. Round totals live in the report.
+         */
         TestAttackerRow: {
             /** Suite Version */
             suite_version: number;
@@ -853,6 +874,21 @@ export interface components {
             ];
             /** Fp Rate */
             fp_rate: number;
+        };
+        /** TestAttackerRunSummary */
+        TestAttackerRunSummary: {
+            /** Run Id */
+            run_id: string;
+            /** Suite Version */
+            suite_version: number;
+            /** Attempted Rounds */
+            attempted_rounds: number;
+            /** Valid Rounds */
+            valid_rounds: number;
+            /** Error Rounds */
+            error_rounds: number;
+            /** Escaped Rounds */
+            escaped_rounds: number;
         };
         /** TrialCreate */
         TrialCreate: {

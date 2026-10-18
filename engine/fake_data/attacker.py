@@ -98,7 +98,7 @@ def make_attacker(role: Literal["training", "test"] = "training", kind: Literal[
     llm = client_for(model)
     if llm is None:
         if kind == "llm":
-            raise RuntimeError(f"--attacker llm needs a key for {model}: set ANTHROPIC_API_KEY (claude-*) or OPENAI_API_KEY in .env")
+            raise RuntimeError(f"--attacker llm needs a key for {model}: set ANTHROPIC_API_KEY (claude-*), GEMINI_API_KEY (gemini-*), or OPENAI_API_KEY in .env")
         return ScriptedAttacker(attacker_id=role, seed=seed)
     return Attacker(attacker_id=role, model=model, system_prompt_path=PROMPT_FOR_ROLE[role], seed=seed, llm=llm)
 

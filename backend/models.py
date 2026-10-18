@@ -200,6 +200,10 @@ class TestAttackerRequest(BaseModel):
 
 
 class TestAttackerRow(BaseModel):
+    """Measured rows count independent attack runs, with any valid escape as success.
+
+    fp_rate is measured on the requested trial's honest sites. Round totals live in the report.
+    """
     suite_version: int
     attacker_id: str
     attempted: int
@@ -210,10 +214,25 @@ class TestAttackerRow(BaseModel):
     fp_rate: float
 
 
+class TestAttackerRunSummary(BaseModel):
+    run_id: str
+    suite_version: int
+    attempted_rounds: int
+    valid_rounds: int
+    error_rounds: int
+    escaped_rounds: int
+
+
 class TestAttackerResult(Response):
     attacker_id: str
     never_seen_during_patching: bool
     rows: list[TestAttackerRow]
+    evaluation_unit: Literal["runs", "rounds"] = "rounds"
+    round_budget: int | None = None
+    model: str | None = None
+    fp_population: str | None = None
+    limitations: list[str] = Field(default_factory=list)
+    per_run: list[TestAttackerRunSummary] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------- blind

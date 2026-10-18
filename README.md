@@ -58,7 +58,7 @@ The pitch uses short names; the code uses names that say what each piece does.
 2. That code runs in a **Daytona** sandbox. No LLM-written code ever runs on a laptop.
 3. Sentinel, the fraud-check suite, scores the fake site. The attacker sees which checks fired and rewrites its code. This repeats for several rounds.
 4. Every fake that escapes becomes a counterexample. **Factory Droid** acts as the defender and writes a new fraud check (the Patch). The check ships only if false alarms on real sites stay flat.
-5. A **brand-new test attacker** (Stranger: different model, prompt, and seed, never seen during patching) attacks the patched check suite. We report evasion before and after patching against the test attacker. The training attacker (Sparring) is the one used for patching.
+5. A **brand-new test attacker** (Stranger: different model, prompt, and seed, never seen during patching) receives baseline v0 feedback only. The same saved submissions are scored against frozen v0 and v1, without giving v1 feedback to the attacker. The training attacker (Sparring) is the one used for patching. See [Stranger's protocol and commands](docs/stranger.md).
 6. **Damage:** how far the undetected fakes move the trial's treatment effect, and whether a drug with zero true effect could be made to look significant.
 7. **Breaking Point:** how many undetected fake sites it takes to flip the trial's conclusion, before vs after patching.
 
@@ -122,7 +122,9 @@ The check-suite threshold is calibrated so that no more than 5% of real sites ge
 
 ## Evaluation
 
-**Primary metric:** test-attacker evasion rate. This is the fraction of the test attacker's fake sites that escape detection, measured for check suite v0 and for the patched suite vN at the same false-alarm budget.
+**Primary Stranger metric:** the fraction of fixed-budget attack runs with at least one valid fake site that escapes detection, measured on identical submissions for frozen v0 and v1. Counts and Wilson intervals use runs because adaptive rounds within a run are not independent. The saved report also gives valid, error, and escaped round totals. False alarms in the Stranger report are measured on the requested trial's honest sites, separately from Patch's held-out cohort.
+
+**Measured Stranger pilot:** Gemini 3 Flash preview, four runs with three rounds each: seven valid submissions and five code/schema errors. Neither v0 nor v1 had an escaping run (0/4 each). This pilot does **not** establish improved detection by v1, because no submission escaped v0. [Protocol, saved results, and limitations](docs/stranger.md#measured-pilot).
 
 | Metric | Target direction |
 |---|---|
@@ -136,7 +138,7 @@ The check-suite threshold is calibrated so that no more than 5% of real sites ge
 | `breaking_point` | higher after patching |
 | `cheapest_fix_cost` | reported, labeled as an assigned cost |
 
-Evasion is reported as counts with Wilson 95% intervals. Blind-leak accuracy uses cross-validation grouped by site, with a permutation p-value. **No number appears in this repo, the demo, or the pitch until it has been measured.** All metrics are logged to **Chalk**.
+Evasion is reported as counts with Wilson 95% intervals. Blind-leak accuracy uses cross-validation grouped by site, with a permutation p-value. **No number appears in this repo, the demo, or the pitch until it has been measured.** Chalk metric logging remains unfinished.
 
 ---
 
@@ -170,7 +172,7 @@ Evasion is reported as counts with Wilson 95% intervals. Blind-leak accuracy use
 | Data / stats | pandas, NumPy, SciPy, statsmodels | n/a |
 | ML / attribution | LightGBM, SHAP | sklearn, drop-column only |
 | Storage | SQLite | Parquet |
-| LLM attackers | Claude / GPT (training and test attackers on different models) | Same model with a different prompt and seed |
+| LLM attackers | Claude / GPT / Gemini (training and test attackers on different models) | Same model with a different prompt and seed |
 | Sandbox | Daytona | Local Docker |
 | Evals | Chalk | Local metrics table |
 | Defender agent | Factory Droid | Fallback classifier check |

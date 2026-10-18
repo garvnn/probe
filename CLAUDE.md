@@ -67,3 +67,16 @@ Frontend routes still use the older names (`/forger`, `/harden`, `/blind`). The 
 - `npm audit` reports advisories against `next@14.2.35`; not yet triaged.
 
 When you finish a chunk of frontend or integration work, update this Status section (date, what moved, what's still open).
+
+### Stranger integration (2026-10-17, `fake_data/stranger`)
+
+- Gemini has dedicated credentials and endpoint selection. `run_impostor.py --role test` enforces
+  a frozen Patch, different model/seed, a fixed budget, Daytona execution, and v0-only feedback.
+- `scripts/eval_stranger.py` scores identical saved outputs against v0/v1. Stranger runs live in
+  `data/demo_cache/stranger/`, outside Patch's training scan and the Impostor replay selector.
+- `/test-attacker/eval` serves measured reports in cached/live modes, returns 404 for missing
+  measurements and 409 for changed frozen artifacts. Mock mode remains explicitly tagged.
+- `/harden` labels measured success per run, shows round errors and counts, and identifies the
+  trial false-alarm population. API types were regenerated and typechecked in Daytona.
+- Patch and Breaking Point retain their existing integration status. See `docs/stranger.md` for
+  the fixed-budget protocol, availability constraints, and measured-batch caveats.
