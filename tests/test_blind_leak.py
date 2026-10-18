@@ -72,7 +72,10 @@ def test_no_site_in_both_train_and_test(leaky) -> None:
 def test_shuffle_keeps_site_balance(leaky) -> None:
     _, X, y, groups = leaky
     s = shuffle_within(y, groups, np.random.default_rng(0))
-    assert (s.groupby(groups).value_counts() == y.groupby(groups).value_counts()).all()
+    before = y.groupby(groups).value_counts().sort_index()
+    after = s.groupby(groups).value_counts().sort_index()
+    assert before.equals(after)
+    assert (s != y).any()
 
 
 def test_deterministic(leaky) -> None:
