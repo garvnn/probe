@@ -1,23 +1,21 @@
 {
-  "status": "insufficient: 0 held-out fakes escaped v0; the gate needs at least 10",
-  "frozen": false,
+  "status": "accepted and frozen as v1",
+  "frozen": true,
   "gate": {
-    "accepted": false,
-    "status": "insufficient: 0 held-out fakes escaped v0; the gate needs at least 10",
+    "accepted": true,
+    "status": "accepted",
     "threshold": 3.11868,
     "n_real": 1000,
     "flagged_before": 39,
     "flagged_after": 42,
-    "n_heldout_fakes": 0,
-    "n_escaped": 0,
-    "caught": 0,
-    "reasons": [
-      "0 held-out fakes escaped v0; the gate needs at least 10"
-    ],
+    "n_heldout_fakes": 51,
+    "n_escaped": 13,
+    "caught": 13,
+    "reasons": [],
     "fp_before": 0.039,
     "fp_after": 0.042,
     "caught_ci": [
-      0.0,
+      0.772,
       1.0
     ]
   },
@@ -35,51 +33,51 @@
         ]
       },
       "heldout_fakes_caught": {
-        "k": 0,
-        "n": 0,
-        "rate": null,
+        "k": 38,
+        "n": 51,
+        "rate": 0.7451,
         "ci95": [
-          0.0,
-          1.0
+          0.611,
+          0.845
         ]
       },
       "heldout_v0_escapes_caught": {
         "k": 0,
-        "n": 0,
-        "rate": null,
+        "n": 13,
+        "rate": 0.0,
         "ci95": [
           0.0,
-          1.0
+          0.228
         ]
       }
     },
     {
-      "suite": "candidate (not frozen)",
-      "threshold": 3.1187,
+      "suite": "v1",
+      "threshold": 3.1589,
       "heldout_real_flagged": {
-        "k": 42,
+        "k": 39,
         "n": 1000,
-        "rate": 0.042,
+        "rate": 0.039,
         "ci95": [
-          0.031,
-          0.056
+          0.029,
+          0.053
         ]
       },
       "heldout_fakes_caught": {
-        "k": 0,
-        "n": 0,
-        "rate": null,
+        "k": 51,
+        "n": 51,
+        "rate": 1.0,
         "ci95": [
-          0.0,
+          0.93,
           1.0
         ]
       },
       "heldout_v0_escapes_caught": {
-        "k": 0,
-        "n": 0,
-        "rate": null,
+        "k": 13,
+        "n": 13,
+        "rate": 1.0,
         "ci95": [
-          0.0,
+          0.772,
           1.0
         ]
       }
@@ -90,35 +88,35 @@
     "top_weights": [
       [
         "share of visits on weekends",
-        0.349
-      ],
-      [
-        "core check 'corr_struct' score",
-        0.343
-      ],
-      [
-        "core check 'autocorr' score",
-        0.302
-      ],
-      [
-        "visit-to-visit fingerstick glucose variability",
-        0.154
+        0.621
       ],
       [
         "spread of refrigerated kit temperatures",
-        0.147
+        0.435
       ],
       [
-        "visit-to-visit SBP variability",
-        0.136
+        "core check 'corr_struct' score",
+        0.368
+      ],
+      [
+        "core check 'autocorr' score",
+        0.274
+      ],
+      [
+        "spread of visit timing around the schedule (days)",
+        0.151
       ],
       [
         "share of BP readings ending in 0 or 5",
-        0.11
+        0.14
+      ],
+      [
+        "spread of lab draw times (minutes)",
+        0.126
       ],
       [
         "core check 'digit_pref' score",
-        0.106
+        0.122
       ]
     ],
     "C": 0.3
@@ -129,22 +127,33 @@
     "calibration_seeds": "1-50",
     "n_fit_real": 1200,
     "n_holdout_real": 1000,
-    "n_fakes": 32,
+    "n_fakes": 118,
     "fakes_by_source": {
-      "scripted-regenerated": 32
+      "saved": 78,
+      "scripted-regenerated": 32,
+      "sandbox-rerun": 8
     },
     "train_groups": [
+      "fd_20261017T200526_llm_s41",
+      "fd_20261017T200925_llm_s42",
+      "fd_20261017T203005_llm_s44",
+      "fd_20261017T203426_llm_s45",
       "scripted"
     ],
-    "heldout_groups": [],
-    "n_train_fakes": 32,
-    "n_heldout_fakes": 0,
+    "heldout_groups": [
+      "fd_20261017T191621_llm",
+      "fd_20261017T202527_llm_s43",
+      "fd_20261017T203825_llm_s46",
+      "fd_20261017T204116_llm_s47"
+    ],
+    "n_train_fakes": 67,
+    "n_heldout_fakes": 51,
     "train_fakes_caught_in_sample": {
-      "k": 32,
-      "n": 32,
+      "k": 67,
+      "n": 67,
       "rate": 1.0,
       "ci95": [
-        0.893,
+        0.946,
         1.0
       ]
     },

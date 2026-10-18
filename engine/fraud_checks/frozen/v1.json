@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "parent": 0,
+  "checks": [
+    "digit_pref",
+    "variance",
+    "inlier",
+    "corr_struct",
+    "autocorr",
+    "learned"
+  ],
+  "check_params": {
+    "learned": {
+      "features": [
+        "z_log_sd_baseline_hba1c",
+        "z_log_sd_bmi",
+        "z_log_sd_sbp",
+        "z_log_sd_within_sbp",
+        "z_autocorr_sbp",
+        "z_autocorr_weight",
+        "z_corr_sbp_dbp",
+        "z_corr_weight_bmi",
+        "z_corr_glucose_hba1c",
+        "z_mean_age",
+        "z_mean_bmi",
+        "z_mean_baseline_hba1c",
+        "z_mean_sbp",
+        "z_hba1c_change_mean",
+        "z_hba1c_change_sd",
+        "z_complete_record_share",
+        "z_dropout_share",
+        "z_unscheduled_per_patient",
+        "z_ae_per_patient",
+        "z_conmed_per_patient",
+        "z_dispensing_per_patient",
+        "z_weekend_visit_share",
+        "z_window_dev_sd",
+        "z_draw_time_sd",
+        "z_fingerstick_within_sd",
+        "z_digit_05_share",
+        "z_kit_temp_sd",
+        "check_digit_pref",
+        "check_variance",
+        "check_inlier",
+        "check_corr_struct",
+        "check_autocorr"
+      ],
+      "coef": [
+        -0.02537469,
+        -0.08852829,
+        -0.15451006,
+        0.01787493,
+        -0.04587271,
+        -0.25250301,
+        0.00440939,
+        -0.19971586,
+        -0.1796543,
+        -0.01581327,
+        0.01636114,
+        0.05514829,
+        -0.05079761,
+        -0.19531696,
+        -0.47833016,
+        0.06155577,
+        -0.14450909,
+        -0.21280623,
+        -0.18853115,
+        -0.08391855,
+        -0.37234006,
+        0.62086814,
+        0.1511969,
+        0.12612323,
+        -0.16691352,
+        0.14040648,
+        0.43501445,
+        0.12188851,
+        0.07068063,
+        -0.11301649,
+        0.36760896,
+        0.27416672
+      ],
+      "intercept": -8.89836319,
+      "center": -8.73376195,
+      "scale": 1.51018113,
+      "train_info": {
+        "n_real": 1200,
+        "n_fake": 67,
+        "C": 0.3
+      }
+    }
+  },
+  "threshold": 3.158933,
+  "combined": "max",
+  "flag_rule": "combined >= threshold",
+  "budget": 0.05,
+  "added": {
+    "check": "learned",
+    "created_by": "fallback",
+    "kind": "regularized logistic regression on site-level features"
+  },
+  "gate": {
+    "accepted": true,
+    "status": "accepted",
+    "threshold": 3.11868,
+    "n_real": 1000,
+    "flagged_before": 39,
+    "flagged_after": 42,
+    "n_heldout_fakes": 51,
+    "n_escaped": 13,
+    "caught": 13,
+    "reasons": [],
+    "fp_before": 0.039,
+    "fp_after": 0.042,
+    "caught_ci": [
+      0.772,
+      1.0
+    ]
+  },
+  "table": [
+    {
+      "suite": "v0",
+      "threshold": 3.1187,
+      "heldout_real_flagged": {
+        "k": 39,
+        "n": 1000,
+        "rate": 0.039,
+        "ci95": [
+          0.029,
+          0.053
+        ]
+      },
+      "heldout_fakes_caught": {
+        "k": 38,
+        "n": 51,
+        "rate": 0.7451,
+        "ci95": [
+          0.611,
+          0.845
+        ]
+      },
+      "heldout_v0_escapes_caught": {
+        "k": 0,
+        "n": 13,
+        "rate": 0.0,
+        "ci95": [
+          0.0,
+          0.228
+        ]
+      }
+    },
+    {
+      "suite": "v1",
+      "threshold": 3.1589,
+      "heldout_real_flagged": {
+        "k": 39,
+        "n": 1000,
+        "rate": 0.039,
+        "ci95": [
+          0.029,
+          0.053
+        ]
+      },
+      "heldout_fakes_caught": {
+        "k": 51,
+        "n": 51,
+        "rate": 1.0,
+        "ci95": [
+          0.93,
+          1.0
+        ]
+      },
+      "heldout_v0_escapes_caught": {
+        "k": 13,
+        "n": 13,
+        "rate": 1.0,
+        "ci95": [
+          0.772,
+          1.0
+        ]
+      }
+    }
+  ],
+  "data": {
+    "fit_seeds": "201-260",
+    "holdout_seeds": "301-350",
+    "calibration_seeds": "1-50",
+    "n_fit_real": 1200,
+    "n_holdout_real": 1000,
+    "n_fakes": 118,
+    "fakes_by_source": {
+      "saved": 78,
+      "scripted-regenerated": 32,
+      "sandbox-rerun": 8
+    },
+    "train_groups": [
+      "fd_20261017T200526_llm_s41",
+      "fd_20261017T200925_llm_s42",
+      "fd_20261017T203005_llm_s44",
+      "fd_20261017T203426_llm_s45",
+      "scripted"
+    ],
+    "heldout_groups": [
+      "fd_20261017T191621_llm",
+      "fd_20261017T202527_llm_s43",
+      "fd_20261017T203825_llm_s46",
+      "fd_20261017T204116_llm_s47"
+    ],
+    "n_train_fakes": 67,
+    "n_heldout_fakes": 51,
+    "train_fakes_caught_in_sample": {
+      "k": 67,
+      "n": 67,
+      "rate": 1.0,
+      "ci95": [
+        0.946,
+        1.0
+      ]
+    },
+    "skipped_rounds": []
+  },
+  "frozen_on": "2026-10-17"
+}
