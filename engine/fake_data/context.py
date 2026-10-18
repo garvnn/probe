@@ -10,13 +10,21 @@ from __future__ import annotations
 import pandas as pd
 
 from engine.fake_data.sites import SITE_TABLES
-from engine.simulator.schema import GROUND_TRUTH_SCHEMA, SCHEMA, VISIT_SCHEDULE
+from engine.simulator.schema import ALLOWED_VALUES, GROUND_TRUTH_SCHEMA, SCHEMA, VISIT_SCHEDULE
 from engine.simulator.trial import Trial
 
 OWNER = "Shreyas"
 
 CENTRAL_LAB_VISITS = ["Screening", "Baseline", "Week 12", "Week 24"]
 DISPENSE_VISITS = ["Baseline", "Week 4", "Week 8", "Week 12", "Week 16", "Week 20"]
+
+
+def allowed_values() -> dict[str, dict[str, list[str]]]:
+    """table -> column -> allowed values, straight from schema.ALLOWED_VALUES (what validate enforces)."""
+    out: dict[str, dict[str, list[str]]] = {}
+    for (table, column), values in ALLOWED_VALUES.items():
+        out.setdefault(table, {})[column] = sorted(values)
+    return out
 
 
 def _summary(x: pd.Series, digits: int = 2) -> dict:
@@ -81,6 +89,7 @@ def public_context(trial: Trial) -> dict:
         "schema": {
             "tables": {name: dict(SCHEMA[name]) for name in SITE_TABLES},
             "optional_ground_truth": dict(GROUND_TRUTH_SCHEMA),
+            "allowed_values": allowed_values(),
             "note": "return every table as a list of row dicts; dates as YYYY-MM-DD strings; include ground_truth to say which of your patients are on drug",
         },
         "aggregate_stats": {

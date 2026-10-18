@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -161,6 +163,7 @@ def fake_data_loop(
             "seed": attacker.seed,
             "prompt_file": getattr(getattr(attacker, "system_prompt_path", None), "name", None),
             "prompt_sha256": prompt_sha256(attacker),
+            "context_sha256": hashlib.sha256(json.dumps(context, sort_keys=True).encode()).hexdigest(),
         },
         "usage": {"input_tokens": 0, "output_tokens": 0},
         "runner": type(runner).__name__,

@@ -94,3 +94,32 @@ def test_training_prompt_goal_is_only_passing_the_checks() -> None:
 
     text = PROMPT_FOR_ROLE["training"].read_text()
     assert "That is the only goal." in text and "strong drug effect" not in text
+
+
+def test_context_shows_every_allowed_value_from_schema(trial) -> None:
+    import json
+    import re
+
+    from engine.fake_data.context import public_context
+    from engine.simulator.schema import ALLOWED_VALUES
+
+    ctx = public_context(trial)
+    shown = ctx["schema"]["allowed_values"]
+    assert {(t, c) for t, cols in shown.items() for c in cols} == set(ALLOWED_VALUES)
+    for (table, column), values in ALLOWED_VALUES.items():
+        assert shown[table][column] == sorted(values)
+    for table, cols in shown.items():
+        known = ctx["schema"]["tables"].get(table) or ctx["schema"]["optional_ground_truth"]
+        assert set(cols) <= set(known), f"{table}: allowed values only for real columns"
+    text = json.dumps(ctx)
+    assert not re.search(r"\bP\d{4}\b|\bV\d{4}-|\bS\d{2}\b", text.replace('"S21"', "")), "no patient, visit, or real-site ids"
+
+
+def test_run_metadata_records_context_hash(trial) -> None:
+    import json
+
+    from engine.fake_data.context import public_context
+
+    run = load_run("fd_test_meta")
+    expected = hashlib.sha256(json.dumps(public_context(trial), sort_keys=True).encode()).hexdigest()
+    assert run["attacker"]["context_sha256"] == expected
