@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from engine.blind_leak.cheapest_fix import all_combos, evaluate_combos, pick
+from engine.blind_leak.cheapest_fix import all_combos, best_partial, evaluate_combos, pick
 from engine.blind_leak.remedies import REMEDIES, cost, validate
 from engine.blind_leak.synthetic import Leak, make_trial
 from engine.blind_leak.utility import OPERATIONAL_TASKS, safety_accessible, utility
@@ -71,3 +71,12 @@ def test_search_picks_cheapest_acceptable(trial) -> None:
 
 def test_no_acceptable_combo_is_reported() -> None:
     assert pick([{"acceptable": False, "cost": 1.0, "accuracy": 0.8}]) is None
+
+
+def test_best_partial_is_cheapest_blind_restoring() -> None:
+    rows = [
+        {"combo": ["a"], "acceptable": False, "safety_ok": True, "blind_restored": False, "cost": 2.0, "accuracy": 0.56},
+        {"combo": ["b"], "acceptable": False, "safety_ok": True, "blind_restored": True, "cost": 6.0, "accuracy": 0.48},
+        {"combo": ["c"], "acceptable": False, "safety_ok": True, "blind_restored": True, "cost": 4.0, "accuracy": 0.49},
+    ]
+    assert best_partial(rows)["combo"] == ["c"]

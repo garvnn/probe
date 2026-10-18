@@ -78,9 +78,12 @@ def pick(rows: list[dict]) -> dict | None:
 
 
 def best_partial(rows: list[dict]) -> dict:
-    """When nothing is acceptable: the safe, utility-passing combo with the lowest accuracy (else lowest overall)."""
-    pool = [r for r in rows if r["safety_ok"] and r["utility"] >= 0.90] or rows
-    return min(pool, key=lambda r: (r["accuracy"], r["cost"]))
+    """When nothing is acceptable: the cheapest safe combo that restores the blind (it fails only on
+    utility), ties to lower accuracy. If none restores it, the safe combo with the lowest accuracy."""
+    restored = [r for r in rows if r["safety_ok"] and r["blind_restored"]]
+    if restored:
+        return min(restored, key=lambda r: (r["cost"], r["accuracy"]))
+    return min([r for r in rows if r["safety_ok"]] or rows, key=lambda r: (r["accuracy"], r["cost"]))
 
 
 def cheapest_fix(
