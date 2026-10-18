@@ -357,6 +357,19 @@ export interface components {
             utility: number;
             /** Top Leaks */
             top_leaks: components["schemas"]["Leak"][];
+            /** Scenario */
+            scenario?: string | null;
+            /** Mechanisms */
+            mechanisms?: string | null;
+            /** P Value */
+            p_value?: number | null;
+            /** N Permutations */
+            n_permutations?: number | null;
+            /** Null Accuracy */
+            null_accuracy?: number[] | null;
+            /** Blind Holds */
+            blind_holds?: boolean | null;
+            control?: components["schemas"]["BlindLeakResultModel"] | null;
         };
         /** BlindLeakRunRequest */
         BlindLeakRunRequest: {
@@ -445,6 +458,13 @@ export interface components {
             recommended: components["schemas"]["RemedyCombo"] | null;
             /** Results */
             results: components["schemas"]["RemedyCombo"][];
+            /** View */
+            view?: ("coordinator" | "investigator" | "pharmacist" | "assessor") | null;
+            /** Acceptance Rule */
+            acceptance_rule?: string | null;
+            /** N Permutations */
+            n_permutations?: number | null;
+            best_partial?: components["schemas"]["RemedyCombo"] | null;
         };
         /** ContractProperty */
         ContractProperty: {
@@ -669,6 +689,10 @@ export interface components {
             label: string;
             /** Importance */
             importance: number;
+            /** Group */
+            group?: string | null;
+            /** Drop Auc */
+            drop_auc?: number | null;
         };
         /** PatchRequest */
         PatchRequest: {
@@ -736,6 +760,18 @@ export interface components {
             cost: number;
             /** Safety Ok */
             safety_ok: boolean;
+            /** Accuracy */
+            accuracy?: number | null;
+            /** P Value */
+            p_value?: number | null;
+            /** Null Lo */
+            null_lo?: number | null;
+            /** Null Hi */
+            null_hi?: number | null;
+            /** Blind Restored */
+            blind_restored?: boolean | null;
+            /** Acceptable */
+            acceptable?: boolean | null;
         };
         /** Report */
         Report: {
