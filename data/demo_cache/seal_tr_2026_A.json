@@ -1,0 +1,321 @@
+{
+  "_mock": false,
+  "trial_id": "tr_2026_A",
+  "view": "coordinator",
+  "utility_floor": 0.9,
+  "auc_ceiling": 0.54780171875,
+  "acceptance_rule": "utility >= 0.90, safety preserved, permutation p >= 0.05, and accuracy inside the permutation null's 95% band",
+  "costs_are_assigned": true,
+  "n_permutations": 200,
+  "seed": 0,
+  "recommended": null,
+  "best_partial": {
+    "combo": [
+      "sham_titration",
+      "central_lab",
+      "matched_kits"
+    ],
+    "accuracy": 0.4875,
+    "auc": 0.47926250000000004,
+    "null_lo": 0.45375,
+    "null_hi": 0.54253125,
+    "null_auc_hi": 0.5504940625,
+    "p_value": 0.746268656716418,
+    "utility": 0.8181818181818182,
+    "cost": 4.0,
+    "safety_ok": true,
+    "blind_restored": true,
+    "acceptable": false,
+    "n_features": 101
+  },
+  "results": [
+    {
+      "combo": [],
+      "accuracy": 0.77,
+      "auc": 0.8771875,
+      "null_lo": 0.45621875,
+      "null_hi": 0.53753125,
+      "null_auc_hi": 0.54780171875,
+      "p_value": 0.004975124378109453,
+      "utility": 1.0,
+      "cost": 0.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 126
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist"
+      ],
+      "accuracy": 0.64875,
+      "auc": 0.70985625,
+      "null_lo": 0.456125,
+      "null_hi": 0.54378125,
+      "null_auc_hi": 0.55024203125,
+      "p_value": 0.004975124378109453,
+      "utility": 1.0,
+      "cost": 3.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 119
+    },
+    {
+      "combo": [
+        "sham_titration"
+      ],
+      "accuracy": 0.6425,
+      "auc": 0.7095250000000001,
+      "null_lo": 0.44868749999999996,
+      "null_hi": 0.53875,
+      "null_auc_hi": 0.54624515625,
+      "p_value": 0.004975124378109453,
+      "utility": 1.0,
+      "cost": 1.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 126
+    },
+    {
+      "combo": [
+        "central_lab"
+      ],
+      "accuracy": 0.7725,
+      "auc": 0.857225,
+      "null_lo": 0.45121875,
+      "null_hi": 0.53878125,
+      "null_auc_hi": 0.551273125,
+      "p_value": 0.004975124378109453,
+      "utility": 0.9090909090909091,
+      "cost": 2.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 113
+    },
+    {
+      "combo": [
+        "matched_kits"
+      ],
+      "accuracy": 0.78125,
+      "auc": 0.8298937500000001,
+      "null_lo": 0.44996875000000003,
+      "null_hi": 0.53509375,
+      "null_auc_hi": 0.54328078125,
+      "p_value": 0.004975124378109453,
+      "utility": 0.9090909090909091,
+      "cost": 1.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 114
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration"
+      ],
+      "accuracy": 0.64875,
+      "auc": 0.70985625,
+      "null_lo": 0.456125,
+      "null_hi": 0.54378125,
+      "null_auc_hi": 0.55024203125,
+      "p_value": 0.004975124378109453,
+      "utility": 1.0,
+      "cost": 4.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 119
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "central_lab"
+      ],
+      "accuracy": 0.57875,
+      "auc": 0.61725625,
+      "null_lo": 0.451125,
+      "null_hi": 0.53753125,
+      "null_auc_hi": 0.54603625,
+      "p_value": 0.004975124378109453,
+      "utility": 0.9090909090909091,
+      "cost": 5.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 106
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "matched_kits"
+      ],
+      "accuracy": 0.565,
+      "auc": 0.59686875,
+      "null_lo": 0.4549375,
+      "null_hi": 0.54375,
+      "null_auc_hi": 0.542369375,
+      "p_value": 0.009950248756218905,
+      "utility": 0.9090909090909091,
+      "cost": 4.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 107
+    },
+    {
+      "combo": [
+        "sham_titration",
+        "central_lab"
+      ],
+      "accuracy": 0.5975,
+      "auc": 0.62839375,
+      "null_lo": 0.4525,
+      "null_hi": 0.54375,
+      "null_auc_hi": 0.5499709375,
+      "p_value": 0.004975124378109453,
+      "utility": 0.9090909090909091,
+      "cost": 3.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 113
+    },
+    {
+      "combo": [
+        "sham_titration",
+        "matched_kits"
+      ],
+      "accuracy": 0.56125,
+      "auc": 0.57631875,
+      "null_lo": 0.4548125,
+      "null_hi": 0.54628125,
+      "null_auc_hi": 0.546675,
+      "p_value": 0.004975124378109453,
+      "utility": 0.9090909090909091,
+      "cost": 2.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 114
+    },
+    {
+      "combo": [
+        "central_lab",
+        "matched_kits"
+      ],
+      "accuracy": 0.76875,
+      "auc": 0.8112937499999999,
+      "null_lo": 0.45371875,
+      "null_hi": 0.53878125,
+      "null_auc_hi": 0.5502143749999999,
+      "p_value": 0.004975124378109453,
+      "utility": 0.8181818181818182,
+      "cost": 3.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 101
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration",
+        "central_lab"
+      ],
+      "accuracy": 0.57875,
+      "auc": 0.61725625,
+      "null_lo": 0.451125,
+      "null_hi": 0.53753125,
+      "null_auc_hi": 0.54603625,
+      "p_value": 0.004975124378109453,
+      "utility": 0.9090909090909091,
+      "cost": 6.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 106
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration",
+        "matched_kits"
+      ],
+      "accuracy": 0.565,
+      "auc": 0.59686875,
+      "null_lo": 0.4549375,
+      "null_hi": 0.54375,
+      "null_auc_hi": 0.542369375,
+      "p_value": 0.009950248756218905,
+      "utility": 0.9090909090909091,
+      "cost": 5.0,
+      "safety_ok": true,
+      "blind_restored": false,
+      "acceptable": false,
+      "n_features": 107
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "central_lab",
+        "matched_kits"
+      ],
+      "accuracy": 0.48375,
+      "auc": 0.49330625,
+      "null_lo": 0.45240625,
+      "null_hi": 0.5425,
+      "null_auc_hi": 0.5462635937500001,
+      "p_value": 0.7512437810945274,
+      "utility": 0.8181818181818182,
+      "cost": 6.0,
+      "safety_ok": true,
+      "blind_restored": true,
+      "acceptable": false,
+      "n_features": 94
+    },
+    {
+      "combo": [
+        "sham_titration",
+        "central_lab",
+        "matched_kits"
+      ],
+      "accuracy": 0.4875,
+      "auc": 0.47926250000000004,
+      "null_lo": 0.45375,
+      "null_hi": 0.54253125,
+      "null_auc_hi": 0.5504940625,
+      "p_value": 0.746268656716418,
+      "utility": 0.8181818181818182,
+      "cost": 4.0,
+      "safety_ok": true,
+      "blind_restored": true,
+      "acceptable": false,
+      "n_features": 101
+    },
+    {
+      "combo": [
+        "unblinded_pharmacist",
+        "sham_titration",
+        "central_lab",
+        "matched_kits"
+      ],
+      "accuracy": 0.48375,
+      "auc": 0.49330625,
+      "null_lo": 0.45240625,
+      "null_hi": 0.5425,
+      "null_auc_hi": 0.5462635937500001,
+      "p_value": 0.7512437810945274,
+      "utility": 0.8181818181818182,
+      "cost": 7.0,
+      "safety_ok": true,
+      "blind_restored": true,
+      "acceptable": false,
+      "n_features": 94
+    }
+  ],
+  "created_at": "2026-10-18T05:11:14.411379+00:00"
+}
