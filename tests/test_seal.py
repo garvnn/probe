@@ -109,3 +109,24 @@ def test_live_route_preserves_shape(synthetic_search, monkeypatch):
     assert data["recommended"]["combo"] == ["sham_titration"]
     assert len(data["results"]) == 16
     assert set(data["results"][0]) == {"combo", "auc", "utility", "cost", "safety_ok"}
+
+
+def test_cached_route_matches_requested_thresholds(monkeypatch):
+    from backend import cached
+    from backend.main import app
+
+    monkeypatch.setenv("DEMO_MODE", "cached")
+    request = {"trial_id": "synthetic", "utility_floor": .8, "auc_ceiling": .6}
+    payload = {"_mock": False, **request, "costs_are_assigned": True,
+               "recommended": None, "results": []}
+
+    def lookup(fixture, parameters):
+        assert fixture == "blind_leak_cheapest_fix"
+        assert parameters == request
+        return payload
+
+    monkeypatch.setattr(cached, "load_response", lookup)
+    response = TestClient(app).post("/blind-leak/cheapest-fix", json=request)
+    assert response.status_code == 200
+    assert response.json()["_mock"] is False
+    assert response.json()["recommended"] is None
