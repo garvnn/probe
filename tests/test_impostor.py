@@ -294,3 +294,29 @@ def test_cached_mode_404_for_unknown_run(monkeypatch: pytest.MonkeyPatch) -> Non
 
     monkeypatch.setenv("DEMO_MODE", "cached")
     assert TestClient(app).get("/fake-data/runs/fd_does_not_exist/stream").status_code == 404
+
+
+def test_cached_run_detail_and_round_code(scripted_run, monkeypatch: pytest.MonkeyPatch) -> None:
+    from backend.main import app
+
+    monkeypatch.setenv("DEMO_MODE", "cached")
+    monkeypatch.setenv("CACHED_REPLAY_SPEED", "0")
+    client = TestClient(app)
+    run_id = client.post("/fake-data/runs", json={"trial_id": "tr_2026_B"}).json()["run_id"]
+    saved = load_run(run_id)
+    detail = client.get(f"/fake-data/runs/{run_id}").json()
+    assert detail["run_id"] == run_id and detail["_mock"] is saved["not_a_result"]
+    assert detail["rounds_done"] == len(saved["rounds"]) and detail["threshold"] == saved["suite"]["threshold"]
+    with client.stream("GET", f"/fake-data/runs/{run_id}/stream") as r:
+        body = "".join(r.iter_text())
+    rounds = [json.loads(line[5:]) for line in body.splitlines() if line.startswith("data:") and '"round"' in line]
+    assert [r["code"] for r in rounds] == [r["code"] for r in saved["rounds"]]
+    assert [r["fired"] for r in rounds] == [r["fired"] for r in saved["rounds"]]
+
+
+def test_cached_mode_serves_fixtures_for_uncached_routes(monkeypatch: pytest.MonkeyPatch) -> None:
+    from backend.main import app
+
+    monkeypatch.setenv("DEMO_MODE", "cached")
+    r = TestClient(app).post("/test-attacker/eval", json={"trial_id": "tr_2026_B"})
+    assert r.status_code == 200 and r.json()["_mock"] is True

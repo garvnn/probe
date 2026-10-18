@@ -24,6 +24,10 @@ data/demo_cache/*
 # Frontend
 node_modules/
 .next/
+*.tsbuildinfo
+.env*.local
+# Saved copy of a third-party site, kept locally for design comparison only
+probe-frontend/reference/
 
 # OS
 .DS_Store

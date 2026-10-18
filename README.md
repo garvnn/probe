@@ -180,7 +180,7 @@ Evasion is reported as counts with Wilson 95% intervals. Blind-leak accuracy use
 
 ```
 probe/
-├── frontend/       Next.js app: 5 screens, charts, SSE client
+├── probe-frontend/ Next.js app: 5 screens, charts, SSE client (see CLAUDE.md for status)
 ├── backend/        FastAPI: routes, run state, background tasks, SSE
 ├── engine/
 │   ├── simulator/     NHANES load, trial builder, mechanisms, views
@@ -210,6 +210,8 @@ cp .env.example .env
 make dev     # API on :8000 with autoreload
 make test    # pytest
 make mock    # API serving fixtures only (DEMO_MODE=mock), for frontend work
+make web     # frontend on :3000 (first time: cd probe-frontend && npm install)
+make types   # regenerate frontend API types after changing backend/models.py
 ```
 
 ```

@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export function Footer(){return <footer className="foot container-wide"><div><b style={{fontSize:28,letterSpacing:'-.06em'}}>PROBE<span style={{color:'#9072ff'}}>.</span></b><p className="foot-copy">HACKHARVARD 2026 // CLINICAL TRIAL TESTING<br/>SIMULATED TRIAL / NO REAL PATIENT DATA</p></div><div className="foot-copy">Find risks before patients enroll.<br/><Link href="/demo" style={{color:'#f0efe6'}}>OPEN THE DEMO ↗</Link></div></footer>}
