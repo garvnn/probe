@@ -47,7 +47,7 @@ def blind_leak_cheapest_fix(body: CheapestFixRequest) -> CheapestFixResult:
         return CheapestFixResult(mock=False, trial_id=body.trial_id, utility_floor=body.utility_floor,
                                  auc_ceiling=body.auc_ceiling, costs_are_assigned=True,
                                  recommended=recommended, results=results)
-    return serve("blind_leak_cheapest_fix", CheapestFixResult, OWNER, trial_id=body.trial_id)
+    return serve("blind_leak_cheapest_fix", CheapestFixResult, OWNER, trial_id=body.trial_id, utility_floor=body.utility_floor, auc_ceiling=body.auc_ceiling)
 
 
 @router.get("/guess-cards", response_model=GuessCards)

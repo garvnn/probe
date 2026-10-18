@@ -1,0 +1,31 @@
+{
+  "trial_id": "tr_2026_B",
+  "properties": [
+    {
+      "name": "data_authenticity",
+      "status": "broken",
+      "counterexample": "Saved run fd_20261017T202527_llm_s43 contains 4 v0 escape rounds; rounds are adaptive, not independent."
+    },
+    {
+      "name": "treatment_confidentiality",
+      "status": "broken",
+      "counterexample": "Coordinator accuracy 0.76000, AUC 0.85091, permutation p=0.00498."
+    },
+    {
+      "name": "statistical_integrity",
+      "status": "broken",
+      "counterexample": "Saved escaped fakes changed the ANCOVA effect estimate; this alone does not establish a conclusion flip."
+    },
+    {
+      "name": "safety_accessibility",
+      "status": "untested",
+      "counterexample": null
+    },
+    {
+      "name": "operational_utility",
+      "status": "untested",
+      "counterexample": null
+    }
+  ],
+  "_mock": false
+}

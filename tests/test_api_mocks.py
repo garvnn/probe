@@ -53,6 +53,7 @@ def test_route_returns_mock(client: TestClient, method: str, path: str, body: di
 def test_every_route_is_covered() -> None:
     tested = {(m, p.replace(TID, "{trial_id}").replace("/demo", "/{trial_id}").replace("/fr_01", "/{run_id}")) for m, p, _ in CASES}
     tested.add(("GET", "/fake-data/runs/{run_id}/stream"))
+    tested.add(("GET", "/fraud-checks/held-out"))
     routes = {(m, r.path) for r in app.routes if isinstance(r, APIRoute) for m in r.methods}
     assert routes <= tested, f"untested routes: {routes - tested}"
 
@@ -106,3 +107,7 @@ def test_live_mode_is_501_with_owner(client: TestClient, monkeypatch: pytest.Mon
     r = client.post("/trials", json={"scenario": "B"})
     assert r.status_code == 501
     assert r.json()["detail"].startswith("owner: Garv")
+
+
+def test_patch_held_out_unavailable_in_mock(client: TestClient) -> None:
+    assert client.get("/fraud-checks/held-out").status_code == 404

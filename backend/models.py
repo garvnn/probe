@@ -246,6 +246,10 @@ class BlindLeakResultModel(Response):
     null_hi: float
     utility: float
     top_leaks: list[Leak]
+    p_value: float | None = None
+    p_value_auc: float | None = None
+    n_permutations: int | None = None
+    seed: int | None = None
 
 
 class CheapestFixRequest(BaseModel):

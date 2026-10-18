@@ -1,0 +1,13 @@
+{
+  "_mock": false,
+  "trial_id": "tr_2026_B",
+  "suite_version": 1,
+  "curve": [
+    {
+      "k": 0,
+      "effect": -0.035978788552024715,
+      "p": 0.5423848164946838
+    }
+  ],
+  "break_k": null
+}
