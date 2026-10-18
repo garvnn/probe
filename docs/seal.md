@@ -1,7 +1,7 @@
 # Seal
 
 Seal searches all 16 subsets of the four documented remedies. It calls the public
-`export_view(trial_id, "assessor", remedies=combo)` boundary and measures Tell's
+`export_view(trial_id, "coordinator", remedies=combo)` boundary and measures Tell's
 site-grouped cross-validation AUC. It never modifies patient records or tunes the
 classifier. No simulator implementation is inspected.
 
@@ -34,8 +34,9 @@ utility by 1/6: a 0.90 floor therefore requires all six tasks.
 
 Investigator adverse-event identity, onset, term, category, and severity must all
 remain accessible. None of the four documented remedies removes that access.
-The separate assessor already has a more restricted view; a successful assessor
-result does not establish that coordinator treatment confidentiality is restored.
+The search targets coordinator confidentiality. Investigator AE access is checked
+separately; switching to an already restricted assessor view is not a remedy for
+a coordinator leak.
 
 Costs are **assigned by us**, in relative units: sham titration 1, matched kits 1,
 central lab 2, unblinded pharmacist 3. They are not measured implementation costs.
@@ -54,7 +55,24 @@ it makes no permutation-significance claim. AUC selection on this trial is not
 independent held-out validation of the selected policy. Tell's separate full
 coordinator analysis retains its default permutation test.
 
-## Measured assessor search: tr_2026_B
+## Measured coordinator search: tr_2026_B
+
+All 16 combinations were measured with the existing grouped-CV classifier and
+seed 0. Baseline coordinator AUC was **0.8529375**, utility **1.0**. With AUC
+ceiling 0.55 and utility floor 0.90, **no combination is feasible**; the returned
+recommendation is null.
+
+| Candidate | Coordinator AUC | Utility | Assigned cost | Outcome |
+|---|---|---|---|---|
+| unblinded_pharmacist | 0.63821875 | 1.0 | 3 | Best AUC retaining required utility; fails AUC ceiling |
+| sham_titration + matched_kits | 0.51104375 | 5/6 | 2 | Cheapest reaching AUC ceiling; fails utility floor |
+
+Investigator exports were compared directly for all 16 combinations: all
+**493 AE rows** (including identity, dates, terms, categories, and severity) were
+unchanged. Safety access passed every combination. No utility assumptions,
+thresholds, classifier settings, or remedy effects were tuned to obtain a pass.
+
+## Earlier assessor-only search (superseded)
 
 On the existing trial database, all 16 combinations returned grouped-CV assessor
 AUC **0.44760625**. The cheapest feasible row was the empty combination (`[]`),

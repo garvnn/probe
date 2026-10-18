@@ -1,4 +1,4 @@
-"""Exhaustive Seal search on the permitted assessor export. Owner: Ajay."""
+"""Exhaustive Seal search on the permitted coordinator export. Owner: Ajay."""
 from __future__ import annotations
 
 from itertools import combinations
@@ -43,7 +43,7 @@ def cheapest_fix(
         for subset in combinations(REMEDIES, size):
             combo = list(subset)
             retained = utility(combo)
-            result = run_blind(export_view(trial_id, "assessor", remedies=combo), trial_id,
+            result = run_blind(export_view(trial_id, "coordinator", remedies=combo), trial_id,
                                n_permutations=0, top=0, utility=retained)
             rows.append({"combo": combo, "auc": float(result.auc), "utility": retained,
                          "cost": float(sum(REMEDY_COST[r] for r in combo)),

@@ -55,7 +55,7 @@ def synthetic_search(monkeypatch):
 
     def export(trial_id, role, remedies):
         assert trial_id == "synthetic"
-        assert role == "assessor"
+        assert role == "coordinator"
         calls.append(tuple(remedies))
         return pd.DataFrame({"policy": [tuple(remedies)]})
 
