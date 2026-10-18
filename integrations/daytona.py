@@ -61,6 +61,9 @@ class DaytonaRunner:
     """
 
     LABELS = {"app": "probe", "component": "integrations.daytona"}
+    CREATE_ATTEMPTS = 2
+    """Sandbox creation is tried twice (one retry) before the round is recorded as an error."""
+    create_retry_delay_s: float = 2.0
 
     def __init__(
         self,
@@ -125,8 +128,11 @@ class DaytonaRunner:
         t0 = time.perf_counter()
         sandbox = self._sandbox
         if sandbox is None:
-            sandbox = self.create_sandbox()
+            sandbox, create_error = self._create_with_retry()
             timings["create_s"] = time.perf_counter() - t0
+            if sandbox is None:
+                timings["total_s"] = time.perf_counter() - t0
+                return SandboxResult(False, "", create_error, None, "", 0.0, timings)
             if self.reuse:
                 self._sandbox = sandbox
         try:
@@ -136,12 +142,34 @@ class DaytonaRunner:
         finally:
             if not self.reuse:
                 t2 = time.perf_counter()
-                self.delete_sandbox(sandbox)
+                try:
+                    self.delete_sandbox(sandbox)
+                except Exception as e:  # ephemeral + auto-stop: an undeleted sandbox still expires on its own
+                    timings["teardown_error"] = f"{type(e).__name__}: {e}"[:300]
                 timings["teardown_s"] = time.perf_counter() - t2
         timings["total_s"] = time.perf_counter() - t0
         result.runtime_s = timings["exec_s"]
         result.timings = timings
         return result
+
+    def _create_with_retry(self):
+        """(sandbox, None) on success, or (None, error message) after CREATE_ATTEMPTS failures.
+
+        A Daytona outage or timeout must become one error round, never a crash of the whole loop.
+        The message says plainly that it is infrastructure, not the attacker's code.
+        """
+        errors = []
+        for attempt in range(1, self.CREATE_ATTEMPTS + 1):
+            try:
+                return self.create_sandbox(), None
+            except Exception as e:
+                errors.append(f"attempt {attempt}: {type(e).__name__}: {str(e)[:300]}")
+                if attempt < self.CREATE_ATTEMPTS:
+                    time.sleep(self.create_retry_delay_s)
+        return None, (
+            f"SANDBOX_CREATE_FAILED: infrastructure error, not caused by your code; resubmit it unchanged. "
+            f"({'; '.join(errors)})"
+        )
 
     def fork(self, sandbox_id: str) -> str:
         """Fork a running sandbox (filesystem + memory) and return the new sandbox's id.
