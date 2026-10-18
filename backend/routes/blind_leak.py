@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from backend.config import demo_mode
 from backend.mocks import load_mock
@@ -36,6 +36,17 @@ def blind_leak_policy(body: PolicyRequest) -> BlindLeakResultModel:
 @router.post("/cheapest-fix", response_model=CheapestFixResult)
 def blind_leak_cheapest_fix(body: CheapestFixRequest) -> CheapestFixResult:
     """All 16 remedy combinations + the recommended cheapest fix (engine.blind_leak.cheapest_fix.cheapest_fix)."""
+    if demo_mode() == "live":
+        from engine.blind_leak.cheapest_fix import cheapest_fix
+
+        try:
+            recommended, results = cheapest_fix(body.trial_id, utility_floor=body.utility_floor,
+                                                auc_ceiling=body.auc_ceiling)
+        except (ValueError, KeyError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from None
+        return CheapestFixResult(mock=False, trial_id=body.trial_id, utility_floor=body.utility_floor,
+                                 auc_ceiling=body.auc_ceiling, costs_are_assigned=True,
+                                 recommended=recommended, results=results)
     return serve("blind_leak_cheapest_fix", CheapestFixResult, OWNER, trial_id=body.trial_id, utility_floor=body.utility_floor, auc_ceiling=body.auc_ceiling)
 
 
