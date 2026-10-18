@@ -1,0 +1,4 @@
+# Only what Tell's Chalk resolvers import. Pinned to the local versions so values match bit for bit.
+chalkpy[runtime]
+pandas==3.0.6
+numpy==2.4.6

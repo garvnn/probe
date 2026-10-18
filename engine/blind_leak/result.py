@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 import pandas as pd
 
 from engine.blind_leak.attribution import rank_leaks
-from engine.blind_leak.features import build_features, feature_columns
+from engine.blind_leak.feature_source import tell_features
+from engine.blind_leak.features import feature_columns
 from engine.blind_leak.permutation import DEFAULT_N, run_permutation
 
 OWNER = "Ajay"
@@ -61,7 +62,7 @@ def run_blind(
     Features are built from the view before any label is touched. `labels` (drug|placebo by
     patient_id) are used only as the classifier target; if omitted they come from evals.scoring.
     """
-    feats = build_features(view_df)
+    feats = tell_features(view_df)
     if labels is None:
         from evals.scoring import arm_labels
 
