@@ -15,11 +15,17 @@ M = TypeVar("M", bound=BaseModel)
 def serve(fixture: str, model: type[M], owner: str, **overrides: object) -> M:
     """In mock mode, return fixture `fixture` validated as `model` (with `overrides` applied).
 
-    Cached mode has no cache for this route yet, so it serves the same fixture (still `_mock: true`,
-    so the UI badges it) and the cached demo can run end to end next to a real fake-data replay.
+    Cached mode uses an exact request match from the measured precompute manifest.
+    Missing measurements keep the fixture and its `_mock: true` badge.
     In live mode, raise NotImplementedError naming the owner; main.py turns that into a 501.
     """
     mode = demo_mode()
+    if mode == "cached":
+        from backend.cached import load_response
+
+        cached = load_response(fixture, overrides)
+        if cached is not None:
+            return model.model_validate(cached)
     if mode in ("mock", "cached"):
         data = load_mock(fixture)
         assert isinstance(data, dict)
