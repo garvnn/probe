@@ -234,6 +234,8 @@ class Leak(BaseModel):
     field: str
     label: str
     importance: float
+    group: str | None = None
+    drop_auc: float | None = None
 
 
 class BlindLeakResultModel(Response):
@@ -246,6 +248,15 @@ class BlindLeakResultModel(Response):
     null_hi: float
     utility: float
     top_leaks: list[Leak]
+    # Optional detail from real Tell runs (absent in fixtures).
+    scenario: str | None = None
+    mechanisms: str | None = None
+    p_value: float | None = None
+    n_permutations: int | None = None
+    null_accuracy: list[float] | None = None
+    blind_holds: bool | None = None
+    control: BlindLeakResultModel | None = None
+    """Same trial design with every leak mechanism off; must be at chance."""
 
 
 class CheapestFixRequest(BaseModel):
@@ -260,6 +271,12 @@ class RemedyCombo(BaseModel):
     utility: float
     cost: float
     safety_ok: bool
+    accuracy: float | None = None
+    p_value: float | None = None
+    null_lo: float | None = None
+    null_hi: float | None = None
+    blind_restored: bool | None = None
+    acceptable: bool | None = None
 
 
 class CheapestFixResult(Response):
@@ -269,6 +286,11 @@ class CheapestFixResult(Response):
     costs_are_assigned: bool = True
     recommended: RemedyCombo | None
     results: list[RemedyCombo]
+    view: Role | None = None
+    acceptance_rule: str | None = None
+    n_permutations: int | None = None
+    best_partial: RemedyCombo | None = None
+    """Set only when no combo is acceptable."""
 
 
 class GuessCard(BaseModel):
