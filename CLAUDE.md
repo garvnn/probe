@@ -11,7 +11,7 @@ Probe is a pentest harness for clinical trials (HackHarvard 2026). `README.md` e
 | `probe-frontend/` | Next.js 14 + TypeScript + Tailwind + Recharts. Owner: Akarsh |
 
 ```bash
-make mock     # API on :8000 serving fixtures (needs .venv: python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+make mock     # API on :8000 serving fixtures (needs .venv: python3.11 -m venv .venv && uv pip install -r requirements.txt)
 make web      # frontend on :3000 (first time: cd probe-frontend && npm install)
 make types    # regenerate probe-frontend/lib/api-types.ts from the running API
 make test     # backend pytest
