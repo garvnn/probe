@@ -52,7 +52,9 @@ def _load(run_id: str) -> dict:
 def start_run(body: FakeDataRunCreate) -> FakeDataRun:
     """Start an attack run (live), or point at the newest saved run (cached)."""
     if demo_mode() == "cached":
-        run_id = cache.latest_run_id(body.trial_id)
+        from backend.cached import pinned_run_id
+
+        run_id = pinned_run_id(body.trial_id) or cache.latest_run_id(body.trial_id)
         if run_id is None:
             raise HTTPException(status_code=404, detail=f"no saved runs in {cache.cache_dir()}; run scripts/run_impostor.py first")
         run = _load(run_id)

@@ -12,4 +12,4 @@ OWNER = "Garv"
 @router.post("/breaking-point", response_model=BreakingPointResult)
 def breaking_point(body: BreakingPointRequest) -> BreakingPointResult:
     """Breaking-point curve for one check-suite version (engine.analysis.breaking_point.breaking_point)."""
-    return serve("breaking_point", BreakingPointResult, OWNER, trial_id=body.trial_id, suite_version=body.suite_version)
+    return serve("breaking_point", BreakingPointResult, OWNER, trial_id=body.trial_id, suite_version=body.suite_version, max_k=body.max_k)

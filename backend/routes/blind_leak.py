@@ -36,7 +36,7 @@ def blind_leak_policy(body: PolicyRequest) -> BlindLeakResultModel:
 @router.post("/cheapest-fix", response_model=CheapestFixResult)
 def blind_leak_cheapest_fix(body: CheapestFixRequest) -> CheapestFixResult:
     """All 16 remedy combinations + the recommended cheapest fix (engine.blind_leak.cheapest_fix.cheapest_fix)."""
-    return serve("blind_leak_cheapest_fix", CheapestFixResult, OWNER, trial_id=body.trial_id)
+    return serve("blind_leak_cheapest_fix", CheapestFixResult, OWNER, trial_id=body.trial_id, utility_floor=body.utility_floor, auc_ceiling=body.auc_ceiling)
 
 
 @router.get("/guess-cards", response_model=GuessCards)
